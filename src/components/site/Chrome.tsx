@@ -20,7 +20,7 @@ export function SiteHeader() {
   return (
     <header className="sticky top-0 z-40 border-b bg-background/95 backdrop-blur">
       <div className="bg-primary py-1.5 text-center text-xs font-bold text-primary-foreground">
-        🎁 Cash on Delivery available across India · Call/WhatsApp {BRAND.phone}
+        Cash on Delivery available across India · Call/WhatsApp {BRAND.phone}
       </div>
       <div className="mx-auto flex max-w-7xl items-center gap-3 px-4 py-2">
         <button className="md:hidden" onClick={() => setOpen((o) => !o)} aria-label="Menu">
