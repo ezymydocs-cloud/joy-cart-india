@@ -38,6 +38,7 @@ function totals(o: Loaded["order"]) {
   return `<table width="100%" style="font-size:14px;color:${NAVY};margin-top:8px">
     <tr><td>Subtotal</td><td style="text-align:right">${inr(o.subtotal)}</td></tr>
     <tr><td>Shipping</td><td style="text-align:right">${ship}</td></tr>
+${Number(o.discount) > 0 ? `<tr><td>Coupon${o.coupon_code ? ` (${esc(o.coupon_code)})` : ""}</td><td style="text-align:right">- ${inr(o.discount)}</td></tr>` : ""}
     <tr><td style="font-weight:bold;font-size:16px;padding-top:6px">Total</td><td style="text-align:right;font-weight:bold;font-size:16px;padding-top:6px">${inr(o.total)}</td></tr>
     <tr><td style="color:#6b7394">Payment</td><td style="text-align:right;color:#6b7394">${o.payment_method === "cod" ? "Cash on Delivery" : "Online (Razorpay)"} · ${esc(o.payment_status)}</td></tr>
   </table>`;

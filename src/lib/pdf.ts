@@ -8,6 +8,8 @@ type OrderLike = {
   payment_status: string;
   subtotal: number;
   shipping_total: number;
+  discount?: number | null;
+  coupon_code?: string | null;
   total: number;
   customer_name: string;
   customer_phone: string;
@@ -121,6 +123,7 @@ export async function downloadInvoice(o: OrderLike, items: ItemLike[], s: Settin
   };
   row("Subtotal", rs(o.subtotal));
   row("Shipping", Number(o.shipping_total) > 0 ? rs(o.shipping_total) : "Free shipping");
+  if (Number(o.discount) > 0) row(`Coupon${o.coupon_code ? ` (${o.coupon_code})` : ""}`, `- ${rs(o.discount!)}`);
   row("Total", rs(o.total), true);
 
   y += 6;

@@ -86,7 +86,7 @@ function AdminOrder() {
                 <b>{inr(i.line_total)}</b>
               </div>
             ))}
-            <div className="mt-3"><Totals subtotal={Number(o.subtotal)} shipping={Number(o.shipping_total)} total={Number(o.total)} /></div>
+            <div className="mt-3"><Totals subtotal={Number(o.subtotal)} shipping={Number(o.shipping_total)} total={Number(o.total)} discount={Number(o.discount ?? 0)} coupon={o.coupon_code} /></div>
             <div className="mt-2 text-sm"><b>Payment:</b> {o.payment_method === "cod" ? "Cash on Delivery" : "Online (Razorpay)"} · <span className="font-bold uppercase">{o.payment_status}</span>{o.razorpay_payment_id && ` · ${o.razorpay_payment_id}`}</div>
           </div>
           <div className="grid gap-4 sm:grid-cols-2">

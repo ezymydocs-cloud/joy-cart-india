@@ -103,7 +103,7 @@ export function CustomerOrderView({ id, showRule }: { id: string; showRule?: boo
               <b>{inr(i.line_total)}</b>
             </div>
           ))}
-          <Totals subtotal={Number(o.subtotal)} shipping={Number(o.shipping_total)} total={Number(o.total)} />
+          <Totals subtotal={Number(o.subtotal)} shipping={Number(o.shipping_total)} total={Number(o.total)} discount={Number(o.discount ?? 0)} coupon={o.coupon_code} />
           <div className="text-sm"><b>Payment:</b> {o.payment_method === "cod" ? "Cash on Delivery" : "Online"} · <span className="capitalize">{o.payment_status}</span></div>
           <div className="text-sm"><b>Deliver to:</b> {a.full_name}, {addressLines(a).join(", ")} · {a.phone}</div>
         </div>
