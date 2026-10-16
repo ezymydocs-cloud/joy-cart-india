@@ -17,7 +17,7 @@ export const Route = createFileRoute("/_authenticated/admin/products/$id")({ com
 
 const blank = {
   name: "", category_id: "", short_description: "", description: "", price: "", mrp: "", sku: "", stock: "0",
-  status: "active", is_featured: false, shipping_enabled: false, shipping_charge: "", in_package: "", age_group: "", brand: "", tags: "",
+  status: "active", is_featured: false, shipping_enabled: false, cod_enabled: false, shipping_charge: "", in_package: "", age_group: "", brand: "", tags: "",
 };
 
 function EditProduct() {
@@ -44,7 +44,7 @@ function EditProduct() {
     setF({
       name: p.name, category_id: p.category_id ?? "", short_description: p.short_description ?? "", description: p.description ?? "",
       price: String(p.price), mrp: p.mrp != null ? String(p.mrp) : "", sku: p.sku ?? "", stock: String(p.stock), status: p.status,
-      is_featured: p.is_featured, shipping_enabled: p.shipping_enabled, shipping_charge: Number(p.shipping_charge) ? String(p.shipping_charge) : "",
+      is_featured: p.is_featured, shipping_enabled: p.shipping_enabled, cod_enabled: !!p.cod_enabled, shipping_charge: Number(p.shipping_charge) ? String(p.shipping_charge) : "",
       in_package: p.in_package ?? "", age_group: p.age_group ?? "", brand: p.brand ?? "", tags: (p.tags ?? []).join(", "),
     });
     setImgs(sortedImages(p).map((i) => ({ url: i.url, storage_path: i.storage_path })));
@@ -66,7 +66,7 @@ function EditProduct() {
     const payload = {
       name: f.name.trim(), category_id: f.category_id || null, short_description: f.short_description.trim() || null, description: f.description.trim() || null,
       price, mrp, sku: f.sku.trim() || null, stock, status: f.status, is_featured: f.is_featured,
-      shipping_enabled: f.shipping_enabled && ship > 0, shipping_charge: f.shipping_enabled ? ship : 0,
+      cod_enabled: f.cod_enabled, shipping_enabled: f.shipping_enabled && ship > 0, shipping_charge: f.shipping_enabled ? ship : 0,
       in_package: f.in_package.trim() || null, age_group: f.age_group.trim() || null, brand: f.brand.trim() || null,
       tags: f.tags.split(",").map((t) => t.trim()).filter(Boolean),
     };
@@ -142,6 +142,8 @@ function EditProduct() {
             <label className="flex items-center justify-between text-sm font-bold">Featured <Switch checked={f.is_featured} onCheckedChange={(v) => setF({ ...f, is_featured: v })} /></label>
           </section>
           <section className="space-y-3 rounded-2xl bg-background p-4">
+            <label className="flex items-center justify-between text-sm font-bold">Allow Cash on Delivery <Switch checked={f.cod_enabled} onCheckedChange={(v) => setF({ ...f, cod_enabled: v })} /></label>
+            <p className="-mt-2 text-xs text-muted-foreground">Off = customers must pay online for this product.</p>
             <label className="flex items-center justify-between text-sm font-bold">Charge shipping on this product <Switch checked={f.shipping_enabled} onCheckedChange={(v) => setF({ ...f, shipping_enabled: v })} /></label>
             {f.shipping_enabled ? <div><Label>Shipping charge (₹)</Label><Input type="number" min={0} step="0.01" value={f.shipping_charge} onChange={set("shipping_charge")} /><p className="text-xs text-muted-foreground">Empty or 0 = free shipping.</p></div> : <p className="text-xs text-muted-foreground">Free shipping for this product.</p>}
           </section>

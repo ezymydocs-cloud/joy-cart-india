@@ -15,6 +15,7 @@ export type Product = {
   status: string;
   is_featured: boolean;
   shipping_enabled: boolean;
+  cod_enabled?: boolean;
   shipping_charge: number;
   in_package: string | null;
   age_group: string | null;
