@@ -115,6 +115,46 @@ export function renderEmail(t: EmailTemplate, d: Loaded, origin: string) {
   }
 }
 
+const EMAILJS = {
+  service: "service_if33stj",
+  publicKey: "wvPYPCF3QKIEnPhK-",
+  templates: { order_placed: "template_yprucy4", admin_new_order: "template_yprucy4", cancelled: "template_i017mwk" } as Partial<Record<EmailTemplate, string>>,
+};
+
+function emailJsParams(t: EmailTemplate, d: Loaded, origin: string, to: string) {
+  const o = d.order;
+  const a = o.shipping_address as unknown as Address;
+  return {
+    to_email: to,
+    order_number: o.order_number,
+    customer_name: t === "admin_new_order" ? `Admin (customer: ${o.customer_name}, ${o.customer_phone})` : o.customer_name,
+    order_date: fmtDate(o.created_at),
+    order_items: itemsTable(d.items),
+    subtotal: inr(o.subtotal),
+    shipping: Number(o.shipping_total) > 0 ? inr(o.shipping_total) : "Free shipping",
+    discount: Number(o.discount) > 0 ? `- ${inr(o.discount)}${o.coupon_code ? ` (${o.coupon_code})` : ""}` : "—",
+    total: inr(o.total),
+    payment_method: `${o.payment_method === "cod" ? "Cash on Delivery" : "Online (Razorpay)"} · ${o.payment_status}`,
+    address: [a.full_name, ...addressLines(a)].join(", "),
+    phone: a.phone,
+    cancel_rule: CANCEL_RULE,
+    cancel_reason: o.cancel_reason ?? "—",
+    refund_note: o.payment_status === "refunded" ? "Your online payment will be refunded to the original payment method." : "",
+    order_link: t === "admin_new_order" ? `${origin}/admin/orders/${o.id}` : `${origin}/orders/${o.id}`,
+  };
+}
+
+async function sendViaEmailJS(templateId: string, params: Record<string, string>) {
+  const key = process.env["EMAILJS_PRIVATE_KEY"];
+  if (!key) throw new Error("Email service not configured (EMAILJS_PRIVATE_KEY missing)");
+  const res = await fetch("https://api.emailjs.com/api/v1.0/email/send", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ service_id: EMAILJS.service, template_id: templateId, user_id: EMAILJS.publicKey, accessToken: key, template_params: params }),
+  });
+  if (!res.ok) throw new Error(`EmailJS ${res.status}: ${(await res.text()).slice(0, 300)}`);
+}
+
 async function sendViaResend(to: string, subject: string, html: string) {
   const key = process.env["RESEND_API_KEY"];
   if (!key) throw new Error("Email service not configured (RESEND_API_KEY missing)");
@@ -127,13 +167,17 @@ async function sendViaResend(to: string, subject: string, html: string) {
   if (!res.ok) throw new Error(`Resend ${res.status}: ${(await res.text()).slice(0, 300)}`);
 }
 
-async function deliver(admin: Admin, logId: string, to: string, subject: string, html: string, prevAttempts = 0) {
+type Ctx = { t: EmailTemplate; d: Loaded; origin: string };
+
+async function deliver(admin: Admin, logId: string, to: string, subject: string, html: string, prevAttempts = 0, ctx?: Ctx) {
   let attempts = prevAttempts;
   let lastError: string | null = null;
+  const tpl = ctx ? EMAILJS.templates[ctx.t] : undefined;
   for (let i = 0; i < 3; i++) {
     attempts++;
     try {
-      await sendViaResend(to, subject, html);
+      if (tpl && ctx) await sendViaEmailJS(tpl, emailJsParams(ctx.t, ctx.d, ctx.origin, to));
+      else await sendViaResend(to, subject, html);
       await admin.from("email_logs").update({ status: "sent", attempts, last_error: null, updated_at: new Date().toISOString() }).eq("id", logId);
       return true;
     } catch (e) {
@@ -166,7 +210,7 @@ export async function sendOrderEmails(orderId: string, kind: "placed" | OrderSta
         .insert({ order_id: orderId, recipient: j.to, template: j.template, subject, status: "pending" })
         .select("id")
         .single();
-      if (log) await deliver(supabaseAdmin, log.id, j.to, subject, html);
+      if (log) await deliver(supabaseAdmin, log.id, j.to, subject, html, 0, { t: j.template, d, origin });
     }
   } catch (e) {
     console.error("sendOrderEmails error", e);
@@ -179,5 +223,5 @@ export async function retryEmail(logId: string, origin: string) {
   if (!log || !log.order_id) throw new Error("Email log not found");
   const d = await loadOrder(supabaseAdmin, log.order_id);
   const { subject, html } = renderEmail(log.template as EmailTemplate, d, origin);
-  return deliver(supabaseAdmin, log.id, log.recipient, subject, html, log.attempts);
+  return deliver(supabaseAdmin, log.id, log.recipient, subject, html, log.attempts, { t: log.template as EmailTemplate, d, origin });
 }
