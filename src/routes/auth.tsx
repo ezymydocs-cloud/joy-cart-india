@@ -86,8 +86,15 @@ function AuthPage() {
   };
 
   const social = async (p: "google" | "apple") => {
-    const r = await lovable.auth.signInWithOAuth(p, { redirect_uri: window.location.origin + "/auth" });
-    if (r.error) toast.error(r.error.message ?? "Sign in failed");
+    try {
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: p,
+        options: { redirectTo: window.location.origin + "/auth" },
+      });
+      if (error) toast.error(error.message ?? "Sign in failed");
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "This sign-in method is not configured yet");
+    }
   };
 
   return (
