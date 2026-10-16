@@ -44,7 +44,7 @@ export function ProductListing({ filters, onChange, hideCategory }: { filters: L
 
   return (
     <div>
-      <div className="mb-5 grid grid-cols-2 gap-2 rounded-3xl bg-navy-soft p-3 md:grid-cols-5">
+      <div className="mb-5 grid grid-cols-2 gap-2 rounded-2xl bg-navy-soft p-3 md:grid-cols-5">
         <Input className="col-span-2 rounded-full bg-background" placeholder="Search toys…" defaultValue={filters.q ?? ""} onKeyDown={(e) => { if (e.key === "Enter") onChange({ ...filters, q: (e.target as HTMLInputElement).value.trim() || undefined }); }} onBlur={(e) => { const v = e.target.value.trim() || undefined; if (v !== filters.q) onChange({ ...filters, q: v }); }} />
         {!hideCategory && (
           <Select value={filters.category ?? "all"} onValueChange={(v) => onChange({ ...filters, category: v === "all" ? undefined : v })}>
@@ -74,7 +74,7 @@ export function ProductListing({ filters, onChange, hideCategory }: { filters: L
       ) : q.isError ? (
         <ErrorBox message="Couldn't load toys." onRetry={() => q.refetch()} />
       ) : q.data!.length === 0 ? (
-        <div className="rounded-3xl border-2 border-dashed p-12 text-center">
+        <div className="rounded-2xl border border-dashed p-12 text-center">
           <div className="text-5xl">🧸</div>
           <p className="mt-3 font-bold">No toys match your search.</p>
           <p className="text-sm text-muted-foreground">Try a different word or clear the filters.</p>

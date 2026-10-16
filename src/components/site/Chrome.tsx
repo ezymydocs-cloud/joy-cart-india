@@ -34,7 +34,7 @@ export function SiteHeader() {
           <Link to="/categories" className="hover:text-secondary" activeProps={{ className: "text-secondary" }}>Categories</Link>
         </nav>
         <form onSubmit={submit} className="ml-auto hidden max-w-sm flex-1 md:block">
-          <label className="flex items-center gap-2 rounded-full border-2 bg-muted px-4 py-2">
+          <label className="flex items-center gap-2 rounded-full border bg-muted px-4 py-2">
             <Search className="size-4 text-muted-foreground" />
             <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search toys…" className="w-full bg-transparent text-sm outline-none" />
           </label>
@@ -70,7 +70,7 @@ export function SiteHeader() {
       {open && (
         <div className="border-t px-4 pb-4 md:hidden">
           <form onSubmit={submit} className="mt-3">
-            <label className="flex items-center gap-2 rounded-full border-2 bg-muted px-4 py-2">
+            <label className="flex items-center gap-2 rounded-full border bg-muted px-4 py-2">
               <Search className="size-4 text-muted-foreground" />
               <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search toys…" className="w-full bg-transparent text-sm outline-none" />
             </label>

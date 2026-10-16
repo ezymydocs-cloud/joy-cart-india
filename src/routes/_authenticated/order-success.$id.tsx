@@ -18,7 +18,7 @@ function Success() {
   const { id } = Route.useParams();
   return (
     <div className="mx-auto max-w-4xl px-4 py-8">
-      <div className="mb-6 rounded-3xl bg-gradient-sun p-6 text-center">
+      <div className="mb-6 rounded-2xl bg-gradient-sun p-6 text-center">
         <div className="text-5xl">🎉</div>
         <h1 className="mt-2 text-3xl text-primary">Thank you! Your order is placed.</h1>
         <p className="mt-1 font-bold text-primary/80">A confirmation email is on its way.</p>

@@ -125,10 +125,10 @@ function Checkout() {
         <div className="space-y-6">
           <section>
             <h2 className="mb-3 text-xl">1. Delivery address</h2>
-            {addrs.isLoading ? <div className="h-24 animate-pulse rounded-3xl bg-muted" /> : (
+            {addrs.isLoading ? <div className="h-24 animate-pulse rounded-2xl bg-muted" /> : (
               <div className="space-y-2">
                 {addrs.data?.map((a) => (
-                  <label key={a.id} className={`flex cursor-pointer gap-3 rounded-3xl border-2 p-4 ${addrId === a.id ? "border-secondary bg-sun-soft" : ""}`}>
+                  <label key={a.id} className={`flex cursor-pointer gap-3 rounded-2xl border p-4 ${addrId === a.id ? "border-secondary bg-sun-soft" : ""}`}>
                     <input type="radio" name="addr" checked={addrId === a.id} onChange={() => setAddrId(a.id)} className="mt-1 accent-secondary" />
                     <div className="text-sm">
                       <div className="font-bold">{a.full_name} · {a.phone}</div>
@@ -147,13 +147,13 @@ function Checkout() {
           <section>
             <h2 className="mb-3 text-xl">2. Payment</h2>
             <div className="space-y-2">
-              {codOn && <label className={`flex cursor-pointer items-center gap-3 rounded-3xl border-2 p-4 ${method === "cod" ? "border-secondary bg-sun-soft" : ""}`}>
+              {codOn && <label className={`flex cursor-pointer items-center gap-3 rounded-2xl border p-4 ${method === "cod" ? "border-secondary bg-sun-soft" : ""}`}>
                 <input type="radio" checked={method === "cod"} onChange={() => setMethod("cod")} className="accent-secondary" />
                 <span className="font-bold">Cash on Delivery</span>
               </label>}
-              {!razorpayOn && !codOn && <p className="rounded-3xl border-2 border-destructive p-4 text-sm font-bold text-destructive">Online payment is being set up. Please check back soon or WhatsApp us to order.</p>}
+              {!razorpayOn && !codOn && <p className="rounded-2xl border border-destructive p-4 text-sm font-bold text-destructive">Online payment is being set up. Please check back soon or WhatsApp us to order.</p>}
               {razorpayOn && (
-                <label className={`flex cursor-pointer items-center gap-3 rounded-3xl border-2 p-4 ${method === "razorpay" ? "border-secondary bg-sun-soft" : ""}`}>
+                <label className={`flex cursor-pointer items-center gap-3 rounded-2xl border p-4 ${method === "razorpay" ? "border-secondary bg-sun-soft" : ""}`}>
                   <input type="radio" checked={method === "razorpay"} onChange={() => setMethod("razorpay")} className="accent-secondary" />
                   <span className="font-bold">Pay online (UPI, Cards, Netbanking)</span>
                 </label>
@@ -161,7 +161,7 @@ function Checkout() {
             </div>
           </section>
         </div>
-        <aside className="h-fit space-y-4 rounded-3xl bg-navy-soft p-5">
+        <aside className="h-fit space-y-4 rounded-2xl bg-navy-soft p-5">
           <h2 className="text-xl">Order summary</h2>
           {c.isLoading ? <div className="h-20 animate-pulse rounded bg-muted" /> : (
             <div className="space-y-2">
@@ -179,7 +179,7 @@ function Checkout() {
           )}
           <div>
             {coupon ? (
-              <div className="flex items-center justify-between rounded-2xl border-2 border-dashed border-success bg-background p-3 text-sm">
+              <div className="flex items-center justify-between rounded-2xl border border-dashed border-success bg-background p-3 text-sm">
                 <span><b className="font-mono">{coupon.code}</b> applied · you save {inr(discount)}</span>
                 <button className="text-xs font-bold text-destructive" onClick={() => { setCoupon(null); setCodeInput(""); }}>Remove</button>
               </div>

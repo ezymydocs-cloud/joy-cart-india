@@ -38,7 +38,7 @@ function ProductPage() {
     },
   });
 
-  if (isLoading) return <div className="mx-auto grid max-w-6xl gap-6 px-4 py-6 md:grid-cols-2"><div className="aspect-square animate-pulse rounded-3xl bg-muted" /><div className="h-64 animate-pulse rounded-3xl bg-muted" /></div>;
+  if (isLoading) return <div className="mx-auto grid max-w-6xl gap-6 px-4 py-6 md:grid-cols-2"><div className="aspect-square animate-pulse rounded-2xl bg-muted" /><div className="h-64 animate-pulse rounded-2xl bg-muted" /></div>;
   if (isError) return <div className="p-10 text-center"><p className="font-bold">Couldn't load this toy.</p><Button className="mt-3" onClick={() => refetch()}>Try again</Button></div>;
   if (!p) return <div className="p-16 text-center"><p className="font-bold">This toy isn't available.</p><Link to="/products" className="text-secondary">Browse all toys</Link></div>;
 
@@ -54,13 +54,13 @@ function ProductPage() {
     <div className="mx-auto max-w-6xl px-4 py-6">
       <div className="grid gap-8 md:grid-cols-2">
         <div>
-          <button onClick={() => setZoom(true)} className="block w-full cursor-zoom-in overflow-hidden rounded-3xl border-2 bg-muted">
+          <button onClick={() => setZoom(true)} className="block w-full cursor-zoom-in overflow-hidden rounded-2xl border bg-muted">
             <img src={img} alt={p.name} className="aspect-square w-full object-cover" width={800} height={800} />
           </button>
           {imgs.length > 1 && (
             <div className="mt-3 flex gap-2 overflow-x-auto">
               {imgs.map((im, i) => (
-                <button key={im.id} onClick={() => setActive(i)} className={`size-16 shrink-0 overflow-hidden rounded-xl border-2 ${i === active ? "border-secondary" : ""}`}>
+                <button key={im.id} onClick={() => setActive(i)} className={`size-16 shrink-0 overflow-hidden rounded-xl border ${i === active ? "border-secondary" : ""}`}>
                   <img src={im.url} alt="" className="size-full object-cover" loading="lazy" />
                 </button>
               ))}
@@ -84,7 +84,7 @@ function ProductPage() {
           </div>
           {!out && (
             <div className="mt-5 flex items-center gap-3">
-              <div className="flex items-center rounded-full border-2">
+              <div className="flex items-center rounded-full border">
                 <button className="p-2.5" onClick={() => setQty((q) => Math.max(1, q - 1))} aria-label="Decrease"><Minus className="size-4" /></button>
                 <span className="w-8 text-center font-bold">{qty}</span>
                 <button className="p-2.5" onClick={() => setQty((q) => Math.min(max, q + 1))} aria-label="Increase"><Plus className="size-4" /></button>
@@ -96,7 +96,7 @@ function ProductPage() {
             <Button size="lg" disabled={out} onClick={() => { add(p.id, qty); nav({ to: "/cart" }); }}><Zap /> Buy now</Button>
           </div>
           {packageItems.length > 0 && (
-            <div className="mt-6 rounded-3xl border-2 border-dashed border-secondary/50 bg-sun-soft p-4">
+            <div className="mt-6 rounded-2xl border border-dashed border-secondary/50 bg-sun-soft p-4">
               <h2 className="flex items-center gap-2 text-lg"><PackageOpen className="size-5 text-secondary" /> In This Package</h2>
               <ul className="mt-2 list-inside list-disc text-sm">{packageItems.map((x) => <li key={x}>{x}</li>)}</ul>
             </div>

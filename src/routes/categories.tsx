@@ -18,10 +18,10 @@ function Cats() {
   return (
     <div className="mx-auto max-w-7xl px-4 py-6">
       <h1 className="mb-5 text-3xl">Categories</h1>
-      {isLoading ? <div className="h-40 animate-pulse rounded-3xl bg-muted" /> : !data?.length ? <p className="text-muted-foreground">No categories yet.</p> : (
+      {isLoading ? <div className="h-40 animate-pulse rounded-2xl bg-muted" /> : !data?.length ? <p className="text-muted-foreground">No categories yet.</p> : (
         <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
           {data.map((c) => (
-            <Link key={c.id} to="/category/$slug" params={{ slug: c.slug }} className="overflow-hidden rounded-3xl border-2 p-3 text-center hover:shadow-card">
+            <Link key={c.id} to="/category/$slug" params={{ slug: c.slug }} className="overflow-hidden rounded-2xl border p-3 text-center hover:shadow-card">
               <div className="aspect-square overflow-hidden rounded-2xl bg-muted">{c.image_url && <img src={c.image_url} alt={c.name} className="size-full object-cover" loading="lazy" />}</div>
               <div className="mt-2 font-display text-lg">{c.name}</div>
             </Link>

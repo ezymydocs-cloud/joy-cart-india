@@ -92,7 +92,7 @@ function AuthPage() {
 
   return (
     <div className="mx-auto max-w-md px-4 py-10">
-      <div className="rounded-3xl border-2 p-6 shadow-card">
+      <div className="rounded-2xl border p-6 shadow-card">
         <img src="/logo-sm.png" alt="TrendyToyz" className="mx-auto h-24 w-auto" />
         {sent ? (
           <div className="mt-6 text-center">

@@ -44,7 +44,7 @@ export function MultiImageUploader({ bucket, value, onChange }: { bucket: Bucket
         onDragLeave={() => setOver(false)}
         onDrop={(e) => { e.preventDefault(); setOver(false); if (e.dataTransfer.files.length) addFiles(e.dataTransfer.files); }}
         onClick={() => input.current?.click()}
-        className={`flex cursor-pointer flex-col items-center gap-1 rounded-2xl border-2 border-dashed p-6 text-center ${over ? "border-secondary bg-sun-soft" : ""}`}
+        className={`flex cursor-pointer flex-col items-center gap-1 rounded-2xl border border-dashed p-6 text-center ${over ? "border-secondary bg-sun-soft" : ""}`}
       >
         <Upload className="size-6 text-secondary" />
         <div className="font-bold">{busy ? `Uploading ${busy}…` : "Drag & drop images or click to choose"}</div>
@@ -60,7 +60,7 @@ export function MultiImageUploader({ bucket, value, onChange }: { bucket: Bucket
               onDragStart={() => setDrag(i)}
               onDragOver={(e) => e.preventDefault()}
               onDrop={(e) => { e.preventDefault(); e.stopPropagation(); if (drag !== null) move(drag, i); setDrag(null); }}
-              className={`relative overflow-hidden rounded-xl border-2 ${i === 0 ? "border-secondary" : ""}`}
+              className={`relative overflow-hidden rounded-xl border ${i === 0 ? "border-secondary" : ""}`}
             >
               <img src={img.url} alt="" className="aspect-square w-full object-cover" />
               {i === 0 && <span className="absolute left-1 top-1 rounded-full bg-secondary px-1.5 text-[10px] font-bold text-secondary-foreground">MAIN</span>}
@@ -93,7 +93,7 @@ export function SingleImageUploader({ bucket, value, onChange, label }: { bucket
         onClick={() => input.current?.click()}
         onDragOver={(e) => e.preventDefault()}
         onDrop={(e) => { e.preventDefault(); pick(e.dataTransfer.files[0]); }}
-        className="flex cursor-pointer items-center gap-3 rounded-2xl border-2 border-dashed p-3"
+        className="flex cursor-pointer items-center gap-3 rounded-2xl border border-dashed p-3"
       >
         {value ? <img src={value} alt="" className="size-16 rounded-lg object-cover" /> : <Upload className="size-6 text-secondary" />}
         <div className="text-xs">

@@ -16,7 +16,7 @@ export function OrderTimeline({ status, history }: { status: OrderStatus; histor
         const isCancel = s === "cancelled";
         return (
           <li key={s} className="relative">
-            <span className={`absolute -left-[35px] grid size-6 place-items-center rounded-full border-2 ${isCancel ? "border-destructive bg-destructive text-destructive-foreground" : done ? "border-success bg-success text-success-foreground" : "bg-background"}`}>
+            <span className={`absolute -left-[35px] grid size-6 place-items-center rounded-full border ${isCancel ? "border-destructive bg-destructive text-destructive-foreground" : done ? "border-success bg-success text-success-foreground" : "bg-background"}`}>
               {isCancel ? <X className="size-3.5" /> : done ? <Check className="size-3.5" /> : null}
             </span>
             <div className={`font-bold ${done ? "" : "text-muted-foreground"}`}>{STATUS_LABEL[s]}</div>
