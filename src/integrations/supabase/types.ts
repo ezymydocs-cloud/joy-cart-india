@@ -125,6 +125,51 @@ export type Database = {
         }
         Relationships: []
       }
+      coupons: {
+        Row: {
+          code: string
+          created_at: string
+          description: string | null
+          discount_type: string
+          discount_value: number
+          expires_at: string | null
+          id: string
+          is_active: boolean
+          max_discount: number | null
+          min_order: number
+          usage_limit: number | null
+          used_count: number
+        }
+        Insert: {
+          code: string
+          created_at?: string
+          description?: string | null
+          discount_type?: string
+          discount_value: number
+          expires_at?: string | null
+          id?: string
+          is_active?: boolean
+          max_discount?: number | null
+          min_order?: number
+          usage_limit?: number | null
+          used_count?: number
+        }
+        Update: {
+          code?: string
+          created_at?: string
+          description?: string | null
+          discount_type?: string
+          discount_value?: number
+          expires_at?: string | null
+          id?: string
+          is_active?: boolean
+          max_discount?: number | null
+          min_order?: number
+          usage_limit?: number | null
+          used_count?: number
+        }
+        Relationships: []
+      }
       couriers: {
         Row: {
           created_at: string
@@ -292,12 +337,14 @@ export type Database = {
           awb_number: string | null
           cancel_reason: string | null
           cancelled_by: string | null
+          coupon_code: string | null
           courier_id: string | null
           courier_name: string | null
           created_at: string
           customer_email: string | null
           customer_name: string
           customer_phone: string
+          discount: number
           id: string
           idempotency_key: string
           order_number: string
@@ -318,12 +365,14 @@ export type Database = {
           awb_number?: string | null
           cancel_reason?: string | null
           cancelled_by?: string | null
+          coupon_code?: string | null
           courier_id?: string | null
           courier_name?: string | null
           created_at?: string
           customer_email?: string | null
           customer_name: string
           customer_phone: string
+          discount?: number
           id?: string
           idempotency_key: string
           order_number?: string
@@ -344,12 +393,14 @@ export type Database = {
           awb_number?: string | null
           cancel_reason?: string | null
           cancelled_by?: string | null
+          coupon_code?: string | null
           courier_id?: string | null
           courier_name?: string | null
           created_at?: string
           customer_email?: string | null
           customer_name?: string
           customer_phone?: string
+          discount?: number
           id?: string
           idempotency_key?: string
           order_number?: string
@@ -575,6 +626,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      _coupon_discount: {
+        Args: { p_code: string; p_subtotal: number }
+        Returns: Json
+      }
       _restore_stock: { Args: { p_order_id: string }; Returns: undefined }
       admin_customers: {
         Args: never
@@ -603,6 +658,7 @@ export type Database = {
         Args: { p_order_id: string; p_reason: string }
         Returns: Json
       }
+      check_coupon: { Args: { p_code: string; p_items: Json }; Returns: Json }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
@@ -614,6 +670,7 @@ export type Database = {
       place_order: {
         Args: {
           p_address_id: string
+          p_coupon_code?: string
           p_idempotency_key: string
           p_items: Json
           p_payment_method: string

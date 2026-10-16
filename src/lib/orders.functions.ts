@@ -48,6 +48,7 @@ export const placeOrder = createServerFn({ method: "POST" })
         addressId: z.string().uuid(),
         paymentMethod: z.enum(["cod", "razorpay"]),
         idempotencyKey: z.string().min(8).max(100),
+        couponCode: z.string().trim().max(30).optional(),
       })
       .parse(d),
   )
@@ -60,6 +61,7 @@ export const placeOrder = createServerFn({ method: "POST" })
       p_address_id: data.addressId,
       p_payment_method: data.paymentMethod,
       p_idempotency_key: data.idempotencyKey,
+      p_coupon_code: data.couponCode || undefined,
     });
     if (error) throw dbError(error);
     const r = res as { order_id: string; order_number: string; duplicate: boolean };

@@ -25,6 +25,7 @@ import { Route as ProductSlugRouteImport } from './routes/product.$slug'
 import { Route as AuthenticatedAdminIndexRouteImport } from './routes/_authenticated/admin.index'
 import { Route as AuthenticatedAdminBannersRouteImport } from './routes/_authenticated/admin.banners'
 import { Route as AuthenticatedAdminCategoriesRouteImport } from './routes/_authenticated/admin.categories'
+import { Route as AuthenticatedAdminCouponsRouteImport } from './routes/_authenticated/admin.coupons'
 import { Route as AuthenticatedAdminCouriersRouteImport } from './routes/_authenticated/admin.couriers'
 import { Route as AuthenticatedAdminCustomersRouteImport } from './routes/_authenticated/admin.customers'
 import { Route as AuthenticatedAdminSettingsRouteImport } from './routes/_authenticated/admin.settings'
@@ -118,6 +119,12 @@ const AuthenticatedAdminCategoriesRoute =
     path: '/categories',
     getParentRoute: () => AuthenticatedAdminRoute,
   } as any)
+const AuthenticatedAdminCouponsRoute =
+  AuthenticatedAdminCouponsRouteImport.update({
+    id: '/coupons',
+    path: '/coupons',
+    getParentRoute: () => AuthenticatedAdminRoute,
+  } as any)
 const AuthenticatedAdminCouriersRoute =
   AuthenticatedAdminCouriersRouteImport.update({
     id: '/couriers',
@@ -198,6 +205,7 @@ export interface FileRoutesByFullPath {
   '/product/$slug': typeof ProductSlugRoute
   '/admin/banners': typeof AuthenticatedAdminBannersRoute
   '/admin/categories': typeof AuthenticatedAdminCategoriesRoute
+  '/admin/coupons': typeof AuthenticatedAdminCouponsRoute
   '/admin/couriers': typeof AuthenticatedAdminCouriersRoute
   '/admin/customers': typeof AuthenticatedAdminCustomersRoute
   '/admin/settings': typeof AuthenticatedAdminSettingsRoute
@@ -225,6 +233,7 @@ export interface FileRoutesByTo {
   '/product/$slug': typeof ProductSlugRoute
   '/admin/banners': typeof AuthenticatedAdminBannersRoute
   '/admin/categories': typeof AuthenticatedAdminCategoriesRoute
+  '/admin/coupons': typeof AuthenticatedAdminCouponsRoute
   '/admin/couriers': typeof AuthenticatedAdminCouriersRoute
   '/admin/customers': typeof AuthenticatedAdminCustomersRoute
   '/admin/settings': typeof AuthenticatedAdminSettingsRoute
@@ -255,6 +264,7 @@ export interface FileRoutesById {
   '/product/$slug': typeof ProductSlugRoute
   '/_authenticated/admin/banners': typeof AuthenticatedAdminBannersRoute
   '/_authenticated/admin/categories': typeof AuthenticatedAdminCategoriesRoute
+  '/_authenticated/admin/coupons': typeof AuthenticatedAdminCouponsRoute
   '/_authenticated/admin/couriers': typeof AuthenticatedAdminCouriersRoute
   '/_authenticated/admin/customers': typeof AuthenticatedAdminCustomersRoute
   '/_authenticated/admin/settings': typeof AuthenticatedAdminSettingsRoute
@@ -285,6 +295,7 @@ export interface FileRouteTypes {
     | '/product/$slug'
     | '/admin/banners'
     | '/admin/categories'
+    | '/admin/coupons'
     | '/admin/couriers'
     | '/admin/customers'
     | '/admin/settings'
@@ -312,6 +323,7 @@ export interface FileRouteTypes {
     | '/product/$slug'
     | '/admin/banners'
     | '/admin/categories'
+    | '/admin/coupons'
     | '/admin/couriers'
     | '/admin/customers'
     | '/admin/settings'
@@ -341,6 +353,7 @@ export interface FileRouteTypes {
     | '/product/$slug'
     | '/_authenticated/admin/banners'
     | '/_authenticated/admin/categories'
+    | '/_authenticated/admin/coupons'
     | '/_authenticated/admin/couriers'
     | '/_authenticated/admin/customers'
     | '/_authenticated/admin/settings'
@@ -483,6 +496,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminCategoriesRouteImport
       parentRoute: typeof AuthenticatedAdminRoute
     }
+    '/_authenticated/admin/coupons': {
+      id: '/_authenticated/admin/coupons'
+      path: '/coupons'
+      fullPath: '/admin/coupons'
+      preLoaderRoute: typeof AuthenticatedAdminCouponsRouteImport
+      parentRoute: typeof AuthenticatedAdminRoute
+    }
     '/_authenticated/admin/couriers': {
       id: '/_authenticated/admin/couriers'
       path: '/couriers'
@@ -566,6 +586,7 @@ declare module '@tanstack/react-router' {
 interface AuthenticatedAdminRouteChildren {
   AuthenticatedAdminBannersRoute: typeof AuthenticatedAdminBannersRoute
   AuthenticatedAdminCategoriesRoute: typeof AuthenticatedAdminCategoriesRoute
+  AuthenticatedAdminCouponsRoute: typeof AuthenticatedAdminCouponsRoute
   AuthenticatedAdminCouriersRoute: typeof AuthenticatedAdminCouriersRoute
   AuthenticatedAdminCustomersRoute: typeof AuthenticatedAdminCustomersRoute
   AuthenticatedAdminSettingsRoute: typeof AuthenticatedAdminSettingsRoute
@@ -579,6 +600,7 @@ interface AuthenticatedAdminRouteChildren {
 const AuthenticatedAdminRouteChildren: AuthenticatedAdminRouteChildren = {
   AuthenticatedAdminBannersRoute: AuthenticatedAdminBannersRoute,
   AuthenticatedAdminCategoriesRoute: AuthenticatedAdminCategoriesRoute,
+  AuthenticatedAdminCouponsRoute: AuthenticatedAdminCouponsRoute,
   AuthenticatedAdminCouriersRoute: AuthenticatedAdminCouriersRoute,
   AuthenticatedAdminCustomersRoute: AuthenticatedAdminCustomersRoute,
   AuthenticatedAdminSettingsRoute: AuthenticatedAdminSettingsRoute,
