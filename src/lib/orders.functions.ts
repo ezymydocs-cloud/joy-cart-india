@@ -27,7 +27,7 @@ async function createRazorpayOrder(orderId: string, orderNumber: string, total: 
   });
   if (!res.ok) {
     console.error("Razorpay order failed", res.status, await res.text());
-    throw new Error("Could not start online payment. Please try again or choose Cash on Delivery.");
+    throw new Error("Could not start online payment. Please try again.");
   }
   const rp = (await res.json()) as { id: string; amount: number };
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
@@ -53,7 +53,7 @@ export const placeOrder = createServerFn({ method: "POST" })
   )
   .handler(async ({ data, context }) => {
     if (data.paymentMethod === "razorpay" && !(process.env["RAZORPAY_KEY_ID"] && process.env["RAZORPAY_KEY_SECRET"])) {
-      throw new Error("Online payment is not available right now. Please choose Cash on Delivery.");
+      throw new Error("Online payment is not available right now. Please try again later.");
     }
     const { data: res, error } = await context.supabase.rpc("place_order", {
       p_items: data.items,

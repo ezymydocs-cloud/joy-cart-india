@@ -408,6 +408,7 @@ export type Database = {
           age_group: string | null
           brand: string | null
           category_id: string | null
+          cod_enabled: boolean
           created_at: string
           description: string | null
           id: string
@@ -430,6 +431,7 @@ export type Database = {
           age_group?: string | null
           brand?: string | null
           category_id?: string | null
+          cod_enabled?: boolean
           created_at?: string
           description?: string | null
           id?: string
@@ -452,6 +454,7 @@ export type Database = {
           age_group?: string | null
           brand?: string | null
           category_id?: string | null
+          cod_enabled?: boolean
           created_at?: string
           description?: string | null
           id?: string

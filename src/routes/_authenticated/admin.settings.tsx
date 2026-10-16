@@ -55,7 +55,7 @@ function Settings() {
       <div className="space-y-2 rounded-2xl bg-background p-4">
         <label className="flex items-center justify-between font-bold">Online payments (Razorpay) <Switch checked={!!f.razorpay_enabled} onCheckedChange={(v) => setF({ ...f, razorpay_enabled: v })} /></label>
         <p className={`text-xs ${pay.data?.razorpayConfigured ? "text-success" : "text-destructive"}`}>
-          {pay.data?.razorpayConfigured ? "Razorpay keys are set up." : "Razorpay keys are not added yet. Customers will only see Cash on Delivery until they are."}
+          {pay.data?.razorpayConfigured ? "Razorpay keys are set up." : "Razorpay keys are not added yet. Online payment will not work until they are added."}
         </p>
       </div>
       <Button onClick={save}>Save settings</Button>

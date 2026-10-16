@@ -13,9 +13,9 @@ export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
       { title: "TrendyToyz | Trendy Toys for Kids, Delivered Across India" },
-      { name: "description", content: "Shop soft toys, cars, building blocks and more at TrendyToyz. Cash on Delivery across India." },
+      { name: "description", content: "Shop soft toys, cars, building blocks and more at TrendyToyz. Easy online payment across India." },
       { property: "og:title", content: "TrendyToyz | Trendy Toys for Kids" },
-      { property: "og:description", content: "Soft toys, cars, building blocks and more. Cash on Delivery across India." },
+      { property: "og:description", content: "Soft toys, cars, building blocks and more. Easy online payment across India." },
     ],
   }),
   component: Index,
@@ -116,7 +116,7 @@ function Index() {
       <Banners />
       <div className="mt-6 grid grid-cols-2 gap-3 md:grid-cols-4">
         {[
-          { i: Wallet, t: "Cash on Delivery" },
+          { i: Wallet, t: "Secure online payment" },
           { i: Truck, t: "Pan-India shipping" },
           { i: ShieldCheck, t: "Child-safe toys" },
           { i: Sparkles, t: "New arrivals weekly" },
