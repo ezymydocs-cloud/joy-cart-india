@@ -38,7 +38,7 @@ function Checkout() {
   const payCfgFn = useServerFn(getPaymentConfig);
   const [addrId, setAddrId] = useState<string>();
   const [adding, setAdding] = useState(false);
-  const [method, setMethod] = useState<"cod" | "razorpay">("cod");
+  const [method, setMethod] = useState<"cod" | "razorpay">("razorpay");
   const [busy, setBusy] = useState(false);
   const idem = useRef(crypto.randomUUID());
 
@@ -55,6 +55,10 @@ function Checkout() {
   const payCfg = useQuery({ queryKey: ["pay-config"], queryFn: () => payCfgFn() });
   const razorpayOn = !!settings.data?.razorpay_enabled && !!payCfg.data?.razorpayConfigured;
 
+  const codOn = c.rows.length > 0 && c.rows.every((r) => !!r.product.cod_enabled);
+  useEffect(() => {
+    if (method === "cod" && !codOn) setMethod("razorpay");
+  }, [codOn, method]);
   useEffect(() => {
     if (!addrId && addrs.data?.length) setAddrId(addrs.data[0].id);
   }, [addrs.data, addrId]);
@@ -122,10 +126,11 @@ function Checkout() {
           <section>
             <h2 className="mb-3 text-xl">2. Payment</h2>
             <div className="space-y-2">
-              <label className={`flex cursor-pointer items-center gap-3 rounded-3xl border-2 p-4 ${method === "cod" ? "border-secondary bg-sun-soft" : ""}`}>
+              {codOn && <label className={`flex cursor-pointer items-center gap-3 rounded-3xl border-2 p-4 ${method === "cod" ? "border-secondary bg-sun-soft" : ""}`}>
                 <input type="radio" checked={method === "cod"} onChange={() => setMethod("cod")} className="accent-secondary" />
                 <span className="font-bold">Cash on Delivery</span>
-              </label>
+              </label>}
+              {!razorpayOn && !codOn && <p className="rounded-3xl border-2 border-destructive p-4 text-sm font-bold text-destructive">Online payment is being set up. Please check back soon or WhatsApp us to order.</p>}
               {razorpayOn && (
                 <label className={`flex cursor-pointer items-center gap-3 rounded-3xl border-2 p-4 ${method === "razorpay" ? "border-secondary bg-sun-soft" : ""}`}>
                   <input type="radio" checked={method === "razorpay"} onChange={() => setMethod("razorpay")} className="accent-secondary" />
@@ -153,7 +158,7 @@ function Checkout() {
           )}
           <Totals subtotal={c.subtotal} shipping={c.shipping} total={c.total} />
           <CancelRuleNote />
-          <Button size="lg" className="w-full" disabled={busy || c.isLoading || !addrId || c.problems.length > 0} onClick={submit}>
+          <Button size="lg" className="w-full" disabled={busy || c.isLoading || (method === "razorpay" ? !razorpayOn : !codOn) || !addrId || c.problems.length > 0} onClick={submit}>
             {busy ? "Placing order…" : `Place Order · ${inr(c.total)}`}
           </Button>
           <p className="text-center text-xs text-muted-foreground">Final prices are confirmed by our system when you place the order.</p>
