@@ -210,7 +210,7 @@ export async function sendOrderEmails(orderId: string, kind: "placed" | OrderSta
         .insert({ order_id: orderId, recipient: j.to, template: j.template, subject, status: "pending" })
         .select("id")
         .single();
-      if (log) await deliver(supabaseAdmin, log.id, j.to, subject, html);
+      if (log) await deliver(supabaseAdmin, log.id, j.to, subject, html, 0, { t: j.template, d, origin });
     }
   } catch (e) {
     console.error("sendOrderEmails error", e);
@@ -223,5 +223,5 @@ export async function retryEmail(logId: string, origin: string) {
   if (!log || !log.order_id) throw new Error("Email log not found");
   const d = await loadOrder(supabaseAdmin, log.order_id);
   const { subject, html } = renderEmail(log.template as EmailTemplate, d, origin);
-  return deliver(supabaseAdmin, log.id, log.recipient, subject, html, log.attempts);
+  return deliver(supabaseAdmin, log.id, log.recipient, subject, html, log.attempts, { t: log.template as EmailTemplate, d, origin });
 }
