@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { z } from "zod";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
+import { lovable } from "@/integrations/lovable/index";
 import { useAuth } from "@/lib/auth";
 import { PHONE_RE } from "@/lib/format";
 import { Button } from "@/components/ui/button";
@@ -84,7 +85,17 @@ function AuthPage() {
     }
   };
 
-
+  const social = async (p: "google" | "apple") => {
+    try {
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: p,
+        options: { redirectTo: window.location.origin + "/auth" },
+      });
+      if (error) toast.error(error.message ?? "Sign in failed");
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "This sign-in method is not configured yet");
+    }
+  };
 
   return (
     <div className="mx-auto max-w-md px-4 py-10">
@@ -99,7 +110,13 @@ function AuthPage() {
           <>
             <h1 className="mt-4 text-center text-2xl">{mode === "signup" ? "Create your account" : mode === "forgot" ? "Reset password" : "Welcome back!"}</h1>
             {redirect?.includes("checkout") && <p className="mt-1 text-center text-sm text-muted-foreground">Please log in to place your order.</p>}
-
+            {mode !== "forgot" && (
+              <div className="mt-5 grid gap-2">
+                <Button variant="outline" onClick={() => social("google")}>Continue with Google</Button>
+                <Button variant="outline" onClick={() => social("apple")}> Continue with Apple</Button>
+                <div className="my-2 text-center text-xs text-muted-foreground">or use email</div>
+              </div>
+            )}
             <form onSubmit={submit} className="space-y-3">
               {mode === "signup" && (
                 <>

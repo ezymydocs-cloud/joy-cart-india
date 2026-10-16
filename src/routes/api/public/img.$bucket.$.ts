@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 
 const ALLOWED = new Set(["product-images", "banners", "categories"]);
+const FALLBACK = "/images/teddy.jpg";
 
 export const Route = createFileRoute("/api/public/img/$bucket/$")({
   server: {
@@ -15,7 +16,7 @@ export const Route = createFileRoute("/api/public/img/$bucket/$")({
         }
 
         if (!ALLOWED.has(bucket) || !path || path.includes("..")) {
-          return new Response(null, { status: 302, headers: { Location: "/images/teddy.jpg" } });
+          return new Response(null, { status: 302, headers: { Location: FALLBACK } });
         }
 
         try {
@@ -55,10 +56,10 @@ export const Route = createFileRoute("/api/public/img/$bucket/$")({
           } catch { /* ignore fallback error */ }
 
           console.error("[img-proxy] Storage download failed for", bucket, path, error?.message || error);
-          return new Response(null, { status: 302, headers: { Location: "/images/teddy.jpg" } });
+          return new Response(null, { status: 302, headers: { Location: FALLBACK } });
         } catch (err) {
           console.error("[img-proxy] Error retrieving image:", err);
-          return new Response(null, { status: 302, headers: { Location: "/images/teddy.jpg" } });
+          return new Response(null, { status: 302, headers: { Location: FALLBACK } });
         }
       },
     },

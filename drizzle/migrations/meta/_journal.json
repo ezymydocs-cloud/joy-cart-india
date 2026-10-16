@@ -29,6 +29,20 @@
       "when": 1792146272677,
       "tag": "0003_coupons",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1792160289371,
+      "tag": "0004_cod_default_on",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1792160289372,
+      "tag": "0005_add_admin_sallujags",
+      "breakpoints": true
     }
   ]
 }
