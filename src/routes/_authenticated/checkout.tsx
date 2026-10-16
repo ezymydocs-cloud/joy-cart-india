@@ -79,7 +79,8 @@ function Checkout() {
   const codOn = c.rows.length > 0 && c.rows.every((r) => !!r.product.cod_enabled);
   useEffect(() => {
     if (method === "cod" && !codOn) setMethod("razorpay");
-  }, [codOn, method]);
+    if (method === "razorpay" && !razorpayOn && codOn) setMethod("cod");
+  }, [codOn, razorpayOn, method]);
   useEffect(() => {
     if (!addrId && addrs.data?.length) setAddrId(addrs.data[0].id);
   }, [addrs.data, addrId]);
