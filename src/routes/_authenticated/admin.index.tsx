@@ -41,7 +41,7 @@ function Dashboard() {
   return (
     <div className="space-y-6">
       <h1 className="text-2xl">Dashboard</h1>
-      {stats.isLoading ? <div className="h-32 animate-pulse rounded-3xl bg-background" /> : stats.isError ? <p className="text-destructive">Couldn't load stats.</p> : (
+      {stats.isLoading ? <div className="h-32 animate-pulse rounded-2xl bg-background" /> : stats.isError ? <p className="text-destructive">Couldn't load stats.</p> : (
         <>
           <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
             {cards.map((c) => <div key={c.l} className="rounded-2xl bg-background p-4"><div className="text-xs font-bold text-muted-foreground">{c.l}</div><div className="mt-1 font-display text-2xl">{c.v}</div></div>)}

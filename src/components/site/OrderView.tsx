@@ -26,7 +26,7 @@ export function CustomerOrderView({ id, showRule }: { id: string; showRule?: boo
   const [reason, setReason] = useState("");
   const [busy, setBusy] = useState(false);
 
-  if (q.isLoading) return <div className="h-64 animate-pulse rounded-3xl bg-muted" />;
+  if (q.isLoading) return <div className="h-64 animate-pulse rounded-2xl bg-muted" />;
   if (q.isError) return <div className="text-center"><p className="font-bold">Couldn't load order.</p><Button className="mt-2" onClick={() => q.refetch()}>Retry</Button></div>;
   if (!q.data?.order) return <p className="text-center font-bold">Order not found.</p>;
   const { order: o, items, history } = q.data;
@@ -67,7 +67,7 @@ export function CustomerOrderView({ id, showRule }: { id: string; showRule?: boo
       </div>
 
       {status === "shipped" || status === "delivered" ? (
-        <div className="rounded-3xl bg-primary p-4 text-primary-foreground">
+        <div className="rounded-2xl bg-primary p-4 text-primary-foreground">
           <div className="text-sm opacity-80">Shipped via</div>
           <div className="font-display text-xl">{o.courier_name}</div>
           <div className="mt-1 flex items-center gap-2 text-sm">AWB: <b>{o.awb_number}</b>
@@ -82,19 +82,19 @@ export function CustomerOrderView({ id, showRule }: { id: string; showRule?: boo
       ) : null}
 
       {o.payment_method === "razorpay" && o.payment_status === "pending" && status !== "cancelled" && (
-        <div className="flex flex-wrap items-center justify-between gap-2 rounded-3xl border-2 border-secondary p-4">
+        <div className="flex flex-wrap items-center justify-between gap-2 rounded-2xl border border-secondary p-4">
           <span className="font-bold">Online payment pending</span>
           <Button variant="sun" disabled={busy} onClick={pay}>Pay {inr(o.total)} now</Button>
         </div>
       )}
 
       <div className="grid gap-5 md:grid-cols-2">
-        <div className="rounded-3xl border-2 p-5">
+        <div className="rounded-2xl border p-5">
           <h2 className="mb-4 text-lg">Order status</h2>
           <OrderTimeline status={status} history={history as never} />
           {status === "cancelled" && o.cancel_reason && <p className="mt-3 text-sm"><b>Reason:</b> {o.cancel_reason}</p>}
         </div>
-        <div className="space-y-4 rounded-3xl border-2 p-5">
+        <div className="space-y-4 rounded-2xl border p-5">
           <h2 className="text-lg">Items</h2>
           {items.map((i) => (
             <div key={i.id} className="flex gap-3 text-sm">

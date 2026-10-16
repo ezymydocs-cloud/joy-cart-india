@@ -53,7 +53,7 @@ export function AddressForm({ userId, initial, onSaved, onCancel, makeDefault }:
   );
 
   return (
-    <form onSubmit={save} className="grid gap-3 rounded-3xl border-2 p-4 sm:grid-cols-2">
+    <form onSubmit={save} className="grid gap-3 rounded-2xl border p-4 sm:grid-cols-2">
       {field("full_name", "Full name")}
       <div>
         <Label className="text-xs">Mobile number</Label>

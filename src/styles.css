@@ -55,10 +55,10 @@
 }
 
 :root {
-  --radius: 1.1rem;
+  --radius: 0.75rem;
   /* Brand: navy #0B2A6B, orange #FF8A00, yellow #FFB400, red #E5262F */
-  --background: oklch(0.985 0.008 240);
-  --foreground: oklch(0.27 0.11 263);
+  --background: oklch(0.99 0.003 250);
+  --foreground: oklch(0.22 0.06 264);
   --card: oklch(1 0 0);
   --card-foreground: oklch(0.27 0.11 263);
   --popover: oklch(1 0 0);
@@ -68,19 +68,19 @@
   --secondary: oklch(0.7 0.2 45);
   --secondary-foreground: oklch(1 0 0);
   --sun: oklch(0.82 0.17 78);
-  --sun-soft: oklch(0.97 0.05 75);
-  --navy-soft: oklch(0.96 0.025 245);
-  --muted: oklch(0.96 0.012 245);
-  --muted-foreground: oklch(0.5 0.05 263);
-  --accent: oklch(0.95 0.04 245);
+  --sun-soft: oklch(0.975 0.03 75);
+  --navy-soft: oklch(0.97 0.008 250);
+  --muted: oklch(0.965 0.005 250);
+  --muted-foreground: oklch(0.52 0.025 260);
+  --accent: oklch(0.96 0.01 250);
   --accent-foreground: oklch(0.31 0.13 263);
   --destructive: oklch(0.6 0.22 26);
   --destructive-foreground: oklch(1 0 0);
   --success: oklch(0.62 0.16 150);
   --success-foreground: oklch(1 0 0);
   --whatsapp: oklch(0.72 0.19 150);
-  --border: oklch(0.91 0.015 245);
-  --input: oklch(0.9 0.02 263);
+  --border: oklch(0.92 0.006 250);
+  --input: oklch(0.9 0.008 250);
   --ring: oklch(0.73 0.18 55);
   --chart-1: oklch(0.73 0.18 55);
   --chart-2: oklch(0.31 0.13 263);
@@ -97,8 +97,8 @@
   --sidebar-ring: oklch(0.82 0.17 78);
   --gradient-sun: linear-gradient(120deg, var(--sun) 0%, var(--secondary) 55%, oklch(0.64 0.22 30) 100%);
   --gradient-hero: radial-gradient(circle at 10% 0%, oklch(0.95 0.06 70 / 0.7), transparent 45%), radial-gradient(circle at 90% 5%, oklch(0.93 0.05 245 / 0.8), transparent 45%), radial-gradient(circle at 50% 100%, oklch(0.95 0.04 20 / 0.5), transparent 50%);
-  --shadow-pop: 0 6px 0 0 color-mix(in oklab, var(--primary) 85%, black);
-  --shadow-card: 0 14px 40px -18px color-mix(in oklab, var(--primary) 35%, transparent);
+  --shadow-pop: 0 1px 2px 0 color-mix(in oklab, var(--primary) 12%, transparent);
+  --shadow-card: 0 18px 40px -24px color-mix(in oklab, var(--primary) 40%, transparent), 0 2px 6px -2px color-mix(in oklab, var(--primary) 8%, transparent);
 }
 
 @layer base {
@@ -129,7 +129,4 @@
 @utility bg-gradient-hero {
   background-image: var(--gradient-hero);
 }
-body {
-  background-image: var(--gradient-hero);
-  background-attachment: fixed;
-}
+

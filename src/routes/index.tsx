@@ -40,7 +40,7 @@ function Banners() {
     return () => { clearInterval(t); api.off("select", on); };
   }, [api]);
 
-  if (isLoading) return <div className="aspect-[16/9] animate-pulse rounded-3xl bg-muted md:aspect-[5/2]" />;
+  if (isLoading) return <div className="aspect-[16/9] animate-pulse rounded-2xl bg-muted md:aspect-[5/2]" />;
   if (!data?.length) return null;
   return (
     <div className="relative">
@@ -48,7 +48,7 @@ function Banners() {
         <CarouselContent>
           {data.map((b, i) => {
             const inner = (
-              <div className="relative overflow-hidden rounded-3xl">
+              <div className="relative overflow-hidden rounded-2xl">
                 <picture>
                   {b.mobile_image_url && <source media="(max-width: 767px)" srcSet={b.mobile_image_url} />}
                   <img src={b.desktop_image_url} alt={b.title ?? "TrendyToyz"} className="aspect-[16/9] w-full object-cover md:aspect-[5/2]" width={1600} height={640} loading={i === 0 ? "eager" : "lazy"} />
@@ -131,11 +131,11 @@ function Index() {
       <section className="mt-12">
         <h2 className="mb-4 text-2xl md:text-3xl">Shop by category</h2>
         {cats.isLoading ? (
-          <div className="grid grid-cols-2 gap-3 md:grid-cols-4">{Array.from({ length: 4 }).map((_, i) => <div key={i} className="aspect-square animate-pulse rounded-3xl bg-muted" />)}</div>
+          <div className="grid grid-cols-2 gap-3 md:grid-cols-4">{Array.from({ length: 4 }).map((_, i) => <div key={i} className="aspect-square animate-pulse rounded-2xl bg-muted" />)}</div>
         ) : (
           <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
             {cats.data?.map((c, i) => (
-              <Link key={c.id} to="/category/$slug" params={{ slug: c.slug }} className={`group overflow-hidden rounded-3xl ${colors[i % 4]} p-3 text-center transition-transform hover:-translate-y-1`}>
+              <Link key={c.id} to="/category/$slug" params={{ slug: c.slug }} className={`group overflow-hidden rounded-2xl ${colors[i % 4]} p-3 text-center transition-transform hover:-translate-y-1`}>
                 <div className="aspect-square overflow-hidden rounded-2xl bg-background">
                   {c.image_url && <img src={c.image_url} alt={c.name} loading="lazy" className="size-full object-cover transition-transform group-hover:scale-105" width={300} height={300} />}
                 </div>
@@ -149,7 +149,7 @@ function Index() {
       <ProductRow title="⭐ Featured toys" featured />
       <ProductRow title="New arrivals" />
 
-      <section className="mt-12 rounded-3xl bg-gradient-sun p-8 text-center">
+      <section className="mt-12 rounded-2xl bg-gradient-sun p-8 text-center">
         <h2 className="text-2xl text-primary md:text-3xl">Follow the fun on Instagram</h2>
         <p className="mt-1 font-bold text-primary/80">@trendy_toyzz</p>
         <Button asChild className="mt-4"><a href="https://instagram.com/trendy_toyzz" target="_blank" rel="noreferrer">Follow us</a></Button>

@@ -40,20 +40,20 @@ function Cart() {
   return (
     <div className="mx-auto max-w-5xl px-4 py-6">
       <h1 className="mb-5 text-3xl">Your cart</h1>
-      {c.isLoading ? <div className="h-40 animate-pulse rounded-3xl bg-muted" /> : (
+      {c.isLoading ? <div className="h-40 animate-pulse rounded-2xl bg-muted" /> : (
         <div className="grid gap-6 md:grid-cols-[1fr_320px]">
           <div className="space-y-3">
             {c.rows.map(({ line, product: p }) => {
               const ship = p.shipping_enabled && Number(p.shipping_charge) > 0 ? Number(p.shipping_charge) : 0;
               return (
-                <div key={p.id} className="flex gap-3 rounded-3xl border-2 p-3">
+                <div key={p.id} className="flex gap-3 rounded-2xl border p-3">
                   <img src={mainImage(p)} alt={p.name} className="size-20 rounded-2xl object-cover" />
                   <div className="flex-1">
                     <Link to="/product/$slug" params={{ slug: p.slug }} className="font-bold leading-tight">{p.name}</Link>
                     <div className="text-sm text-muted-foreground">{inr(p.price)} each · {ship > 0 ? `Shipping ${inr(ship)}` : "Free shipping"}</div>
                     {p.stock < line.qty && <div className="text-sm font-bold text-destructive">{p.stock === 0 ? "Out of stock, please remove" : `Only ${p.stock} available`}</div>}
                     <div className="mt-2 flex items-center justify-between">
-                      <div className="flex items-center rounded-full border-2">
+                      <div className="flex items-center rounded-full border">
                         <button className="p-1.5" onClick={() => setQty(p.id, line.qty - 1)} aria-label="Decrease"><Minus className="size-4" /></button>
                         <span className="w-7 text-center text-sm font-bold">{line.qty}</span>
                         <button className="p-1.5" disabled={line.qty >= p.stock} onClick={() => setQty(p.id, line.qty + 1)} aria-label="Increase"><Plus className="size-4" /></button>
@@ -66,7 +66,7 @@ function Cart() {
               );
             })}
           </div>
-          <div className="h-fit space-y-4 rounded-3xl bg-navy-soft p-5">
+          <div className="h-fit space-y-4 rounded-2xl bg-navy-soft p-5">
             <Totals subtotal={c.subtotal} shipping={c.shipping} total={c.total} />
             <Button size="lg" className="w-full" disabled={c.problems.length > 0 || c.rows.length === 0} onClick={() => nav({ to: "/checkout" })}>
               {user ? "Proceed to checkout" : "Login to checkout"}

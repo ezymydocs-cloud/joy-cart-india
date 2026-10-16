@@ -52,7 +52,7 @@ function Account() {
   return (
     <div className="mx-auto max-w-3xl space-y-8 px-4 py-6">
       <div className="flex items-center justify-between"><h1 className="text-3xl">My account</h1><Button asChild variant="outline"><Link to="/orders">My orders</Link></Button></div>
-      <section className="space-y-3 rounded-3xl border-2 p-5">
+      <section className="space-y-3 rounded-2xl border p-5">
         <h2 className="text-xl">Profile</h2>
         <div className="grid gap-3 sm:grid-cols-2">
           <div><Label>Full name</Label><Input value={p.full_name} onChange={(e) => setP({ ...p, full_name: e.target.value })} /></div>
@@ -64,11 +64,11 @@ function Account() {
       <section className="space-y-3">
         <div className="flex items-center justify-between"><h2 className="text-xl">Saved addresses</h2>{editing === null && <Button variant="outline" onClick={() => setEditing("new")}>+ Add address</Button>}</div>
         {editing === "new" && <AddressForm userId={user!.id} makeDefault={!addrs.data?.length} onCancel={() => setEditing(null)} onSaved={() => { setEditing(null); addrs.refetch(); }} />}
-        {addrs.isLoading ? <div className="h-20 animate-pulse rounded-3xl bg-muted" /> : !addrs.data?.length && editing !== "new" ? <p className="text-sm text-muted-foreground">No saved addresses yet.</p> : null}
+        {addrs.isLoading ? <div className="h-20 animate-pulse rounded-2xl bg-muted" /> : !addrs.data?.length && editing !== "new" ? <p className="text-sm text-muted-foreground">No saved addresses yet.</p> : null}
         {addrs.data?.map((a) => editing === a.id ? (
           <AddressForm key={a.id} userId={user!.id} initial={a} onCancel={() => setEditing(null)} onSaved={() => { setEditing(null); addrs.refetch(); }} />
         ) : (
-          <div key={a.id} className="rounded-3xl border-2 p-4 text-sm">
+          <div key={a.id} className="rounded-2xl border p-4 text-sm">
             <div className="flex items-center gap-2 font-bold">{a.full_name} · {a.phone}{a.is_default && <span className="rounded-full bg-sun-soft px-2 text-xs text-secondary">Default</span>}</div>
             <div className="text-muted-foreground">{addressLines(a).join(", ")}</div>
             <div className="mt-2 flex gap-3">

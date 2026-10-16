@@ -24,7 +24,7 @@ function Reset() {
   return (
     <div className="mx-auto max-w-md px-4 py-12">
       <form
-        className="space-y-3 rounded-3xl border-2 p-6"
+        className="space-y-3 rounded-2xl border p-6"
         onSubmit={async (e) => {
           e.preventDefault();
           if (pw.length < 8) return toast.error("Password must be at least 8 characters");
