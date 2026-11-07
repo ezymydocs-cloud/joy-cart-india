@@ -171,17 +171,6 @@ function AuthPage() {
               </p>
             )}
 
-            {mode !== "forgot" && (
-              <div className="mt-5 grid gap-2">
-                <Button variant="outline" className="rounded-xl text-xs font-semibold" onClick={() => social("google")}>
-                  Continue with Google
-                </Button>
-                <div className="my-2 flex items-center gap-2 text-center text-xs text-muted-foreground before:h-px before:flex-1 before:bg-border after:h-px after:flex-1 after:bg-border">
-                  or use email
-                </div>
-              </div>
-            )}
-
             <form onSubmit={submit} className="space-y-3.5">
               {mode === "signup" && (
                 <>
