@@ -17,21 +17,41 @@ function dbError(e: { message?: string } | null) {
 }
 
 async function createRazorpayOrder(orderId: string, orderNumber: string, total: number) {
-  const keyId = process.env["RAZORPAY_KEY_ID"] || process.env["VITE_RAZORPAY_KEY_ID"];
-  const secret = process.env["RAZORPAY_KEY_SECRET"];
-  if (!keyId || !secret) throw new Error("Online payment is not configured");
+  const keyId = (process.env["RAZORPAY_KEY_ID"] || process.env["VITE_RAZORPAY_KEY_ID"])?.trim();
+  const secret = process.env["RAZORPAY_KEY_SECRET"]?.trim();
+  if (!keyId || !secret) throw new Error("Razorpay keys (RAZORPAY_KEY_ID / RAZORPAY_KEY_SECRET) are missing in Vercel Environment Variables");
+
+  const auth = typeof Buffer !== "undefined"
+    ? Buffer.from(`${keyId}:${secret}`).toString("base64")
+    : btoa(`${keyId}:${secret}`);
+
   const res = await fetch("https://api.razorpay.com/v1/orders", {
     method: "POST",
-    headers: { Authorization: `Basic ${btoa(`${keyId}:${secret}`)}`, "Content-Type": "application/json" },
+    headers: { Authorization: `Basic ${auth}`, "Content-Type": "application/json" },
     body: JSON.stringify({ amount: Math.round(total * 100), currency: "INR", receipt: orderNumber }),
   });
+
   if (!res.ok) {
-    console.error("Razorpay order failed", res.status, await res.text());
-    throw new Error("Could not start online payment. Please try again.");
+    const errorBody = await res.text();
+    console.error("Razorpay order creation failed:", res.status, errorBody);
+    let errorDetail = "";
+    try {
+      const parsed = JSON.parse(errorBody);
+      errorDetail = parsed?.error?.description || parsed?.error?.code || "";
+    } catch {}
+    throw new Error(
+      errorDetail
+        ? `Razorpay error: ${errorDetail}`
+        : `Razorpay error (${res.status}): Please check RAZORPAY_KEY_ID and RAZORPAY_KEY_SECRET in Vercel`
+    );
   }
   const rp = (await res.json()) as { id: string; amount: number };
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-  await supabaseAdmin.from("orders").update({ razorpay_order_id: rp.id }).eq("id", orderId);
+  try {
+    await supabaseAdmin.from("orders").update({ razorpay_order_id: rp.id }).eq("id", orderId);
+  } catch (dbErr) {
+    console.warn("Could not save razorpay_order_id to DB:", dbErr);
+  }
   return { keyId, razorpayOrderId: rp.id, amount: rp.amount };
 }
 
