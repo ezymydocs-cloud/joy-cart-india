@@ -9,7 +9,7 @@ import { useCart } from "@/lib/cart";
 import { useCartProducts } from "@/lib/useCartProducts";
 import { fetchSettings, mainImage } from "@/lib/catalog";
 import { addressLines, inr } from "@/lib/format";
-import { getPaymentConfig, placeOrder, startOnlinePayment, verifyOnlinePayment } from "@/lib/orders.functions";
+import { cancelMyOrder, getPaymentConfig, placeOrder, startOnlinePayment, verifyOnlinePayment } from "@/lib/orders.functions";
 import { openRazorpay } from "@/lib/razorpay";
 import { AddressForm, type AddressRow } from "@/components/site/AddressForm";
 import { Totals, CancelRuleNote } from "@/components/site/Summary";
@@ -36,6 +36,7 @@ function Checkout() {
   const place = useServerFn(placeOrder);
   const startPay = useServerFn(startOnlinePayment);
   const verifyPay = useServerFn(verifyOnlinePayment);
+  const cancelOrder = useServerFn(cancelMyOrder);
   const payCfgFn = useServerFn(getPaymentConfig);
   const [addrId, setAddrId] = useState<string>();
   const [adding, setAdding] = useState(false);
@@ -97,19 +98,36 @@ function Checkout() {
       const res = await place({
         data: { items: c.rows.map((r) => ({ product_id: r.product.id, quantity: r.line.qty })), addressId: addrId, paymentMethod: method, idempotencyKey: idem.current, couponCode: coupon?.code },
       });
-      clear();
+
       if (method === "razorpay") {
+        let paid = false;
         try {
           const cfg = await startPay({ data: { orderId: res.orderId } });
           const r = await openRazorpay(cfg);
           if (r) {
             await verifyPay({ data: { orderId: res.orderId, ...r } });
-            toast.success("Payment successful");
-          } else toast.warning("Payment not completed. You can pay from the order page.");
+            paid = true;
+            toast.success("Payment successful!");
+          } else {
+            toast.error("Payment was cancelled. Order has not been placed.");
+          }
         } catch (e) {
-          toast.error(e instanceof Error ? e.message : "Payment failed");
+          toast.error(e instanceof Error ? e.message : "Payment failed. Please try again.");
+        }
+
+        if (!paid) {
+          try {
+            await cancelOrder({ data: { orderId: res.orderId, reason: "Payment cancelled or failed", silent: true } });
+          } catch (cancelErr) {
+            console.error("Could not cancel unpaid order:", cancelErr);
+          }
+          idem.current = crypto.randomUUID();
+          setBusy(false);
+          return;
         }
       }
+
+      clear();
       nav({ to: "/order-success/$id", params: { id: res.orderId }, replace: true });
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Could not place order");
