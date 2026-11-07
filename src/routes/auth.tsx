@@ -132,24 +132,6 @@ function AuthPage() {
     }
   };
 
-  const social = async (p: "google" | "apple") => {
-    try {
-      const { error } = await supabase.auth.signInWithOAuth({
-        provider: p,
-        options: { redirectTo: window.location.origin + "/auth" },
-      });
-      if (error) {
-        toast.error(
-          `${p === "google" ? "Google" : "Apple"} sign-in is not enabled in your Supabase project. Please sign in with email & password.`
-        );
-      }
-    } catch {
-      toast.error(
-        `${p === "google" ? "Google" : "Apple"} sign-in is not configured. Please use email & password.`
-      );
-    }
-  };
-
   return (
     <div className="mx-auto max-w-md px-4 py-12 sm:px-6">
       <div className="rounded-3xl border bg-card p-6 sm:p-8 shadow-xs">
