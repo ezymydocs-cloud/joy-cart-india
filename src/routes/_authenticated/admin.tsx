@@ -14,8 +14,8 @@ export const Route = createFileRoute("/_authenticated/admin")({
   },
   head: () => ({
     meta: [
-      { title: "Admin Panel | TrendyToyze" },
-      { name: "description", content: "TrendyToyze store administration." },
+      { title: "Admin Panel | TrendyToyz" },
+      { name: "description", content: "TrendyToyz store administration." },
       { name: "robots", content: "noindex" },
     ],
   }),
@@ -39,7 +39,7 @@ function AdminLayout() {
   const { signOut, user } = useAuth();
   const side = (
     <div className="flex h-full flex-col">
-      <div className="m-3 rounded-2xl bg-background p-2"><img src="/logo-sm.png" alt="TrendyToyze" className="mx-auto h-16 w-auto" /></div>
+      <div className="m-3 rounded-2xl bg-background p-2"><img src="/logo-sm.png" alt="TrendyToyz" className="mx-auto h-16 w-auto" /></div>
       <nav className="flex-1 space-y-1 px-3">
         {NAV.map((n) => (
           <Link key={n.to} to={n.to} onClick={() => setOpen(false)} activeOptions={{ exact: "exact" in n }}
@@ -63,7 +63,7 @@ function AdminLayout() {
       <div className="md:pl-60">
         <header className="sticky top-0 z-30 flex items-center gap-3 border-b bg-background px-4 py-3 md:hidden">
           <button onClick={() => setOpen(true)} aria-label="Menu">{open ? <X /> : <Menu />}</button>
-          <span className="font-display text-lg">TrendyToyze Admin</span>
+          <span className="font-display text-lg">TrendyToyz Admin</span>
         </header>
         <main className="mx-auto max-w-7xl p-4 md:p-6"><Outlet /></main>
       </div>

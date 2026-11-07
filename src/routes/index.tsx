@@ -15,17 +15,17 @@ import { FlashSaleSection } from "@/components/site/FlashSaleSection";
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "TrendyToyze | Premium Toys for Kids Delivered Across India" },
+      { title: "TrendyToyz | Premium Toys for Kids Delivered Across India" },
       {
         name: "description",
         content:
-          "Discover trending, child-safe, and educational toys at TrendyToyze. Fast delivery across India, Cash on Delivery, and hassle-free returns.",
+          "Discover trending, child-safe, and educational toys at TrendyToyz. Fast delivery across India, Cash on Delivery, and hassle-free returns.",
       },
-      { property: "og:title", content: "TrendyToyze | India's Favorite Toy Store" },
+      { property: "og:title", content: "TrendyToyz | India's Favorite Toy Store" },
       {
         property: "og:description",
         content:
-          "Explore soft toys, remote control cars, STEM building blocks, and games at TrendyToyze.",
+          "Explore soft toys, remote control cars, STEM building blocks, and games at TrendyToyz.",
       },
     ],
   }),
@@ -35,13 +35,22 @@ export const Route = createFileRoute("/")({
 // Default fallback banners when database has none configured yet
 const DEFAULT_BANNERS = [
   {
+    id: "promo-teddy",
+    title: "Cozy Plush & Soft Cuddles",
+    subtitle: "Premium, ultra-soft & 100% child-safe teddy bears crafted for joyful hugs and peaceful sleep",
+    desktop_image_url: "/images/teddy.jpg",
+    mobile_image_url: "/images/teddy.jpg",
+    link_url: "/products",
+    badge: "COZY BESTSELLER",
+  },
+  {
     id: "promo-1",
     title: "Mega Toy Carnival",
-    subtitle: "Up to 40% OFF on Best-Selling Toys · Extra 10% with code TOYZE10",
+    subtitle: "Up to 40% OFF on Best-Selling Toys · Extra 10% with code TOYZ10",
     desktop_image_url: "/images/banner.jpg",
     mobile_image_url: "/images/banner.jpg",
     link_url: "/products",
-    badge: "FESTIVE LAUNCH",
+    badge: "FESTIVE SALE",
   },
   {
     id: "promo-2",
@@ -102,7 +111,7 @@ function Banners() {
                   )}
                   <img
                     src={b.desktop_image_url || "/images/banner.jpg"}
-                    alt={b.title ?? "TrendyToyze Promotion"}
+                    alt={b.title ?? "TrendyToyz Promotion"}
                     className="aspect-[16/9] w-full object-cover opacity-85 transition-transform duration-700 md:aspect-[21/9]"
                     width={1600}
                     height={680}
@@ -132,10 +141,10 @@ function Banners() {
                   )}
 
                   <div className="mt-5 flex items-center gap-3">
-                    <span className="inline-flex items-center gap-1.5 rounded-xl bg-secondary px-5 py-2.5 text-xs font-bold text-secondary-foreground shadow-sm transition-all hover:bg-secondary/90 hover:gap-2">
-                      Shop Now <ArrowRight className="size-3.5" />
+                    <span className="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-orange-500 via-orange-600 to-amber-500 px-7 py-3 text-sm font-bold text-white shadow-lg transition-all hover:scale-105 hover:from-orange-600 hover:to-amber-600 hover:gap-2.5">
+                      Shop Now <ArrowRight className="size-4" />
                     </span>
-                    <span className="hidden sm:inline-flex items-center rounded-xl bg-white/10 backdrop-blur-xs px-4 py-2.5 text-xs font-semibold text-white transition hover:bg-white/20">
+                    <span className="hidden sm:inline-flex items-center rounded-full bg-white/15 backdrop-blur-xs border border-white/20 px-5 py-3 text-xs font-semibold text-white transition hover:bg-white/25">
                       View Categories
                     </span>
                   </div>
@@ -196,7 +205,7 @@ function ProductRow({ title, featured }: { title: string; featured?: boolean }) 
       <div className="mb-6 flex items-end justify-between">
         <div>
           <span className="text-xs font-bold uppercase tracking-wider text-secondary">
-            {featured ? "Handpicked by TrendyToyze" : "Fresh in Stock"}
+            {featured ? "Handpicked by TrendyToyz" : "Fresh in Stock"}
           </span>
           <h2 className="mt-1 font-display text-2xl font-bold tracking-tight text-foreground md:text-3xl">
             {title}
@@ -230,7 +239,7 @@ function ParentTestimonials() {
       name: "Pooja Sharma",
       location: "Bengaluru",
       rating: 5,
-      text: "The building block set arrived in just 2 days. The plastic quality is top-notch, smooth corners, completely safe for my 4-year-old. TrendyToyze is now my go-to gift store!",
+      text: "The building block set arrived in just 2 days. The plastic quality is top-notch, smooth corners, completely safe for my 4-year-old. TrendyToyz is now my go-to gift store!",
     },
     {
       name: "Rohit Verma",
@@ -371,10 +380,10 @@ function Index() {
       {/* Community / Instagram Promotion Banner */}
       <section className="my-16 overflow-hidden rounded-3xl bg-gradient-to-r from-primary via-primary/95 to-primary p-8 text-center text-primary-foreground shadow-card md:p-12">
         <span className="inline-flex items-center gap-1 rounded-full bg-secondary/20 px-3 py-1 text-xs font-bold uppercase tracking-wider text-secondary">
-          <Sparkles className="size-3.5" /> Join TrendyToyze Community
+          <Sparkles className="size-3.5" /> Join TrendyToyz Community
         </span>
         <h2 className="mt-3 font-display text-2xl font-bold tracking-tight md:text-4xl text-white">
-          Follow @trendytoyze on Instagram
+          Follow @trendy_toyzz on Instagram
         </h2>
         <p className="mx-auto mt-2 max-w-lg text-xs md:text-sm text-primary-foreground/80">
           Tag us in your unboxing videos to get featured and win monthly gift vouchers!
@@ -384,7 +393,7 @@ function Index() {
             asChild
             className="bg-secondary text-secondary-foreground hover:bg-secondary/90 font-bold px-6"
           >
-            <a href="https://instagram.com/trendytoyze" target="_blank" rel="noreferrer">
+            <a href="https://instagram.com/trendy_toyzz" target="_blank" rel="noreferrer">
               Follow on Instagram
             </a>
           </Button>

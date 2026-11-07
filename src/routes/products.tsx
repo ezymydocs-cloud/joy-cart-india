@@ -14,10 +14,10 @@ export const Route = createFileRoute("/products")({
   validateSearch: search,
   head: () => ({
     meta: [
-      { title: "Shop All Toys | TrendyToyze" },
-      { name: "description", content: "Browse all TrendyToyze toys. Search, filter by category and price, and sort." },
-      { property: "og:title", content: "Shop All Toys | TrendyToyze" },
-      { property: "og:description", content: "Browse all TrendyToyze toys with search, filters and sorting." },
+      { title: "Shop All Toys | TrendyToyz" },
+      { name: "description", content: "Browse all TrendyToyz toys. Search, filter by category and price, and sort." },
+      { property: "og:title", content: "Shop All Toys | TrendyToyz" },
+      { property: "og:description", content: "Browse all TrendyToyz toys with search, filters and sorting." },
     ],
   }),
   component: Products,

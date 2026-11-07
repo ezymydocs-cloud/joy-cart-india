@@ -78,7 +78,7 @@ export async function downloadShippingLabel(o: OrderLike, items: ItemLike[], s: 
   doc.setFont("helvetica", "normal").line(0.25, 4.95, 3.75, 4.95);
   doc.setFontSize(8).setFont("helvetica", "bold").text("FROM:", 0.25, 5.13);
   doc.setFont("helvetica", "normal");
-  const from = [s?.store_name || "TrendyToyze", ...(doc.splitTextToSize(s?.store_address || "", 3.5) as string[]), `Phone: ${s?.phone || "8446418374"}`];
+  const from = [s?.store_name || "TrendyToyz", ...(doc.splitTextToSize(s?.store_address || "", 3.5) as string[]), `Phone: ${s?.phone || "8446418374"}`];
   doc.text(from.slice(0, 5), 0.25, 5.3);
   doc.save(`label-${o.order_number}.pdf`);
 }
@@ -95,7 +95,7 @@ export async function downloadInvoice(o: OrderLike, items: ItemLike[], s: Settin
 
   doc.setFont("helvetica", "bold").text("Sold by", 15, 52);
   doc.setFont("helvetica", "normal");
-  doc.text([s?.store_name || "TrendyToyze", ...(doc.splitTextToSize(s?.store_address || "", 80) as string[]), `Phone: ${s?.phone || "8446418374"}`, s?.email || "support@trendytoyze.com"], 15, 58);
+  doc.text([s?.store_name || "TrendyToyz", ...(doc.splitTextToSize(s?.store_address || "", 80) as string[]), `Phone: ${s?.phone || "8446418374"}`, s?.email || "support@TrendyToyz.com"], 15, 58);
   doc.setFont("helvetica", "bold").text("Bill / Ship to", 110, 52);
   doc.setFont("helvetica", "normal").text([a.full_name, ...addressLines(a).flatMap((l) => doc.splitTextToSize(l, 85) as string[]), `Phone: ${a.phone}`, o.customer_email || ""], 110, 58);
 
@@ -130,6 +130,6 @@ export async function downloadInvoice(o: OrderLike, items: ItemLike[], s: Settin
   doc.setFillColor(255, 246, 224).rect(15, y - 5, 180, 16, "F");
   doc.setFont("helvetica", "bold").setFontSize(9).text("Cancellation policy:", 18, y + 1);
   doc.setFont("helvetica", "normal").text(doc.splitTextToSize(CANCEL_RULE, 170) as string[], 18, y + 6);
-  doc.setFontSize(8).setTextColor(120).text("Thank you for shopping with TrendyToyze! · instagram.com/trendytoyze", 105, 285, { align: "center" });
+  doc.setFontSize(8).setTextColor(120).text("Thank you for shopping with TrendyToyz! · instagram.com/TrendyToyz", 105, 285, { align: "center" });
   doc.save(`invoice-${o.order_number}.pdf`);
 }

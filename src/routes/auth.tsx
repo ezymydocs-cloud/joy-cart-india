@@ -14,10 +14,10 @@ export const Route = createFileRoute("/auth")({
   validateSearch: z.object({ redirect: z.string().optional() }),
   head: () => ({
     meta: [
-      { title: "Login or Sign up | TrendyToyze" },
-      { name: "description", content: "Log in or create your TrendyToyze account to place orders and track them." },
-      { property: "og:title", content: "Login or Sign up | TrendyToyze" },
-      { property: "og:description", content: "Log in or create your TrendyToyze account." },
+      { title: "Login or Sign up | TrendyToyz" },
+      { name: "description", content: "Log in or create your TrendyToyz account to place orders and track them." },
+      { property: "og:title", content: "Login or Sign up | TrendyToyz" },
+      { property: "og:description", content: "Log in or create your TrendyToyz account." },
     ],
   }),
   component: AuthPage,
@@ -105,7 +105,7 @@ function AuthPage() {
             <span className="text-xl">✨</span>
           </div>
           <div className="mt-2 font-display text-2xl font-bold tracking-tight text-foreground">
-            Trendy<span className="text-secondary">Toyze</span>
+            Trendy<span className="text-secondary">Toyz</span>
           </div>
         </div>
 
@@ -188,7 +188,7 @@ function AuthPage() {
                 </div>
               )}
               <div className="text-muted-foreground">
-                {mode === "signup" ? "Already have an account? " : "New to TrendyToyze? "}
+                {mode === "signup" ? "Already have an account? " : "New to TrendyToyz? "}
                 <button
                   className="font-bold text-foreground hover:text-secondary underline"
                   onClick={() => setMode(mode === "signup" ? "login" : "signup")}

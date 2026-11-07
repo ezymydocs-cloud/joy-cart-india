@@ -21,7 +21,7 @@ export async function openRazorpay(cfg: { keyId: string; razorpayOrderId: string
       key: cfg.keyId,
       amount: cfg.amount,
       currency: "INR",
-      name: "TrendyToyze",
+      name: "TrendyToyz",
       description: `Order ${cfg.orderNumber}`,
       image: `${window.location.origin}/icon-192.png`,
       order_id: cfg.razorpayOrderId,

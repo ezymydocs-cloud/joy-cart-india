@@ -1,14 +1,17 @@
 export const CANCEL_RULE =
   "Order can be cancelled only before it is shipped. Once shipped and tracking is generated, cancellation is not possible.";
 
+export const RETURN_RULE =
+  "Same-day return policy: Returns must be requested on the same day the package is delivered. Requests made the next day or later cannot be accepted.";
+
 export const BRAND = {
-  name: "TrendyToyze",
-  email: "support@trendytoyze.com",
+  name: "TrendyToyz",
+  email: "support@trendytoyz.com",
   phone: "+91 8446418374",
   phoneRaw: "8446418374",
   whatsapp: "https://wa.me/918446418374",
-  instagram: "https://instagram.com/trendytoyze",
-  instagramHandle: "trendytoyze",
+  instagram: "https://instagram.com/trendy_toyzz",
+  instagramHandle: "trendy_toyzz",
 };
 
 export type OrderStatus = "placed" | "accepted" | "packed" | "shipped" | "delivered" | "cancelled";

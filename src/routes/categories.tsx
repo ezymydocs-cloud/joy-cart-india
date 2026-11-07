@@ -4,10 +4,10 @@ import { useCategories } from "@/components/site/ProductListing";
 export const Route = createFileRoute("/categories")({
   head: () => ({
     meta: [
-      { title: "Toy Categories | TrendyToyze" },
-      { name: "description", content: "Explore TrendyToyze categories: soft toys, cars, building blocks and more." },
-      { property: "og:title", content: "Toy Categories | TrendyToyze" },
-      { property: "og:description", content: "Explore all toy categories at TrendyToyze." },
+      { title: "Toy Categories | TrendyToyz" },
+      { name: "description", content: "Explore TrendyToyz categories: soft toys, cars, building blocks and more." },
+      { property: "og:title", content: "Toy Categories | TrendyToyz" },
+      { property: "og:description", content: "Explore all toy categories at TrendyToyz." },
     ],
   }),
   component: Cats,

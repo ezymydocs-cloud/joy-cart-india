@@ -16,7 +16,8 @@ import {
   ShieldCheck,
   Send,
   CreditCard,
-  Banknote,
+  Wallet,
+  RotateCcw,
 } from "lucide-react";
 import { toast } from "sonner";
 import { useCart } from "@/lib/cart";
@@ -54,8 +55,8 @@ export function SiteHeader() {
   return (
     <>
       <TopAnnouncementBar />
-      <header className="sticky top-0 z-40 border-b bg-background/95 backdrop-blur-md transition-all">
-        <div className="mx-auto flex max-w-7xl items-center gap-3 px-4 py-2.5 sm:px-6">
+      <header className="sticky top-0 z-40 border-b bg-background/95 backdrop-blur-md transition-all shadow-xs">
+        <div className="mx-auto flex max-w-7xl items-center justify-between gap-3 px-4 py-2.5 sm:px-6">
           {/* Mobile Menu Button */}
           <button
             className="rounded-lg p-2 text-muted-foreground hover:bg-muted md:hidden"
@@ -65,23 +66,39 @@ export function SiteHeader() {
             {mobileMenuOpen ? <X className="size-6" /> : <Menu className="size-6" />}
           </button>
 
-          {/* Brand Logo & Name: TrendyToyze */}
-          <Link to="/" className="flex items-center gap-2.5 shrink-0 group">
-            <div className="flex size-9 items-center justify-center rounded-xl bg-primary text-primary-foreground font-bold shadow-xs transition group-hover:scale-105">
-              <Sparkles className="size-5 text-secondary" />
-            </div>
-            <div className="flex flex-col">
-              <span className="font-display text-xl font-bold tracking-tight text-foreground sm:text-2xl">
-                Trendy<span className="text-secondary">Toyze</span>
-              </span>
-              <span className="text-[10px] font-semibold text-muted-foreground -mt-1 hidden sm:block tracking-wider uppercase">
-                India's Toy Destination
-              </span>
-            </div>
+          {/* Brand Logo: TrendyToyz */}
+          <Link to="/" className="flex items-center gap-2 shrink-0 group">
+            <img
+              src="/logo.svg"
+              alt="TrendyToyz"
+              className="h-9 sm:h-11 w-auto transition-transform group-hover:scale-105"
+            />
           </Link>
 
+          {/* Prominent Central Search Bar with rounded edges */}
+          <form onSubmit={submit} className="mx-2 hidden max-w-lg flex-1 md:block lg:max-w-xl">
+            <label className="flex items-center gap-2.5 rounded-full border-2 border-secondary/25 bg-muted/40 px-4 py-2 text-sm shadow-xs transition hover:border-secondary/50 focus-within:border-secondary focus-within:bg-background focus-within:ring-2 focus-within:ring-secondary/20">
+              <Search className="size-4 text-secondary shrink-0" />
+              <input
+                value={q}
+                onChange={(e) => setQ(e.target.value)}
+                placeholder="Search premium toys, teddy bears, blocks & games…"
+                className="w-full bg-transparent text-sm outline-none placeholder:text-muted-foreground"
+              />
+              {q && (
+                <button
+                  type="button"
+                  onClick={() => setQ("")}
+                  className="text-xs text-muted-foreground hover:text-foreground"
+                >
+                  <X className="size-3.5" />
+                </button>
+              )}
+            </label>
+          </form>
+
           {/* Desktop Navigation Links */}
-          <nav className="hidden items-center gap-6 font-semibold text-sm md:flex ml-6">
+          <nav className="hidden items-center gap-5 font-semibold text-sm lg:flex">
             <Link
               to="/products"
               className="text-foreground/80 transition hover:text-secondary"
@@ -105,30 +122,8 @@ export function SiteHeader() {
             </Link>
           </nav>
 
-          {/* Modern Search Bar */}
-          <form onSubmit={submit} className="ml-auto hidden max-w-md flex-1 md:block">
-            <label className="flex items-center gap-2.5 rounded-full border bg-muted/60 px-4 py-2 text-sm transition focus-within:border-secondary focus-within:bg-background focus-within:ring-2 focus-within:ring-secondary/20">
-              <Search className="size-4 text-muted-foreground shrink-0" />
-              <input
-                value={q}
-                onChange={(e) => setQ(e.target.value)}
-                placeholder="Search toys, cars, puzzles & games…"
-                className="w-full bg-transparent text-sm outline-none placeholder:text-muted-foreground"
-              />
-              {q && (
-                <button
-                  type="button"
-                  onClick={() => setQ("")}
-                  className="text-xs text-muted-foreground hover:text-foreground"
-                >
-                  <X className="size-3.5" />
-                </button>
-              )}
-            </label>
-          </form>
-
           {/* Action Icons: Account & Cart */}
-          <div className="ml-auto flex items-center gap-1.5 md:ml-3">
+          <div className="flex items-center gap-1.5 sm:gap-2">
             {user ? (
               <DropdownMenu>
                 <DropdownMenuTrigger
@@ -265,7 +260,7 @@ export function SiteFooter() {
       toast.error("Please enter a valid email address");
       return;
     }
-    toast.success("Thank you for subscribing to TrendyToyze VIP Club!", {
+    toast.success("Thank you for subscribing to TrendyToyz VIP Club!", {
       description: "You'll receive exclusive discount codes and new toy drops.",
     });
     setNewsEmail("");
@@ -278,7 +273,7 @@ export function SiteFooter() {
         <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-4 md:flex-row">
           <div>
             <h3 className="font-display text-xl font-bold tracking-tight text-primary-foreground md:text-2xl">
-              Join the TrendyToyze Club
+              Join the TrendyToyz Club
             </h3>
             <p className="mt-1 text-xs text-primary-foreground/75">
               Subscribe for exclusive secret coupons, new arrival alerts & toy giveaways.
@@ -308,12 +303,7 @@ export function SiteFooter() {
         {/* Brand Information */}
         <div>
           <div className="flex items-center gap-2">
-            <div className="flex size-9 items-center justify-center rounded-xl bg-secondary text-secondary-foreground font-bold">
-              <Sparkles className="size-5" />
-            </div>
-            <span className="font-display text-2xl font-bold tracking-tight text-primary-foreground">
-              TrendyToyze
-            </span>
+            <img src="/logo.svg" alt="TrendyToyz" className="h-10 w-auto" />
           </div>
           <p className="mt-3 text-xs leading-relaxed text-primary-foreground/75">
             India's favorite online toy destination. We deliver premium, child-safe, and educational toys that inspire imagination and spark smiles.
@@ -321,6 +311,10 @@ export function SiteFooter() {
           <div className="mt-4 flex items-center gap-2 text-xs text-secondary font-semibold">
             <ShieldCheck className="size-4" />
             <span>100% Certified Child-Safe Products</span>
+          </div>
+          <div className="mt-2 flex items-center gap-2 text-xs text-secondary font-semibold">
+            <RotateCcw className="size-4" />
+            <span>Same-Day Return Guarantee on Delivery</span>
           </div>
         </div>
 
@@ -345,7 +339,7 @@ export function SiteFooter() {
           </h4>
           <ul className="space-y-2 text-primary-foreground/80">
             <li><Link to="/policies/$slug" params={{ slug: "shipping" }} className="transition hover:text-secondary">Shipping & Delivery Policy</Link></li>
-            <li><Link to="/policies/$slug" params={{ slug: "cancellation-refund" }} className="transition hover:text-secondary">Cancellation & 7-Day Refund</Link></li>
+            <li><Link to="/policies/$slug" params={{ slug: "cancellation-refund" }} className="transition hover:text-secondary">Cancellation & Same-Day Refund</Link></li>
             <li><Link to="/policies/$slug" params={{ slug: "privacy" }} className="transition hover:text-secondary">Privacy Policy</Link></li>
             <li><Link to="/policies/$slug" params={{ slug: "terms" }} className="transition hover:text-secondary">Terms & Conditions</Link></li>
           </ul>
@@ -381,15 +375,17 @@ export function SiteFooter() {
       {/* Payment Methods & Copyright Strip */}
       <div className="border-t border-primary-foreground/10 px-4 py-6">
         <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-4 text-xs text-primary-foreground/70 sm:flex-row">
-          <p>© {new Date().getFullYear()} TrendyToyze. All rights reserved.</p>
+          <p>© {new Date().getFullYear()} TrendyToyz. All rights reserved.</p>
 
-          {/* Payment Badges */}
+          {/* Payment Badges Showcase */}
           <div className="flex flex-wrap items-center gap-2">
-            <span className="text-[11px] font-medium text-primary-foreground/60 mr-1">Accepted Payments:</span>
-            {["UPI", "RuPay", "Visa", "Mastercard", "NetBanking", "Cash on Delivery"].map((p) => (
+            <span className="text-[11px] font-medium text-primary-foreground/60 mr-1 flex items-center gap-1">
+              <CreditCard className="size-3.5" /> 100% Secure Payments:
+            </span>
+            {["UPI", "RuPay", "Visa", "Mastercard", "NetBanking", "Digital Wallets", "Cash on Delivery"].map((p) => (
               <span
                 key={p}
-                className="rounded-md border border-primary-foreground/20 bg-primary-foreground/5 px-2 py-0.5 text-[10px] font-semibold text-primary-foreground/80"
+                className="rounded-md border border-primary-foreground/20 bg-primary-foreground/5 px-2.5 py-1 text-[10px] font-semibold text-primary-foreground/90 transition hover:bg-primary-foreground/15"
               >
                 {p}
               </span>
@@ -404,10 +400,10 @@ export function SiteFooter() {
 export function WhatsAppButton() {
   return (
     <a
-      href={`${BRAND.whatsapp}?text=${encodeURIComponent("Hi TrendyToyze! I have a question about your toys.")}`}
+      href={`${BRAND.whatsapp}?text=${encodeURIComponent("Hi TrendyToyz! I have a question about your toys.")}`}
       target="_blank"
       rel="noreferrer"
-      aria-label="Chat with TrendyToyze on WhatsApp"
+      aria-label="Chat with TrendyToyz on WhatsApp"
       className="fixed bottom-20 right-5 z-40 grid size-13 place-items-center rounded-full bg-whatsapp text-white shadow-hover transition-transform hover:scale-110 md:bottom-6 md:size-14"
     >
       <svg viewBox="0 0 24 24" className="size-7 fill-current" aria-hidden>

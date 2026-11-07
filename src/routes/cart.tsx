@@ -1,5 +1,5 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { Minus, Plus, Trash2, ShoppingBag, Truck, ShieldCheck, ArrowRight, Sparkles } from "lucide-react";
+import { Minus, Plus, Trash2, ShoppingBag, Truck, ShieldCheck, ArrowRight, Sparkles, RotateCcw } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { useCart } from "@/lib/cart";
@@ -13,10 +13,10 @@ import { Totals } from "@/components/site/Summary";
 export const Route = createFileRoute("/cart")({
   head: () => ({
     meta: [
-      { title: "Your Shopping Cart | TrendyToyze" },
-      { name: "description", content: "Review and checkout the toys in your TrendyToyze cart." },
-      { property: "og:title", content: "Your Shopping Cart | TrendyToyze" },
-      { property: "og:description", content: "Review and checkout the toys in your TrendyToyze cart." },
+      { title: "Your Shopping Cart | TrendyToyz" },
+      { name: "description", content: "Review and checkout the toys in your TrendyToyz cart." },
+      { property: "og:title", content: "Your Shopping Cart | TrendyToyz" },
+      { property: "og:description", content: "Review and checkout the toys in your TrendyToyz cart." },
     ],
   }),
   component: Cart,
@@ -41,11 +41,11 @@ function Cart() {
 
   const applyCoupon = (e: React.FormEvent) => {
     e.preventDefault();
-    if (couponCode.trim().toUpperCase() === "TOYZE10") {
+    if (couponCode.trim().toUpperCase() === "TOYZ10" || couponCode.trim().toUpperCase() === "TOYZE10") {
       setCouponApplied(true);
-      toast.success("Coupon TOYZE10 applied! You'll receive 10% off at final checkout.");
+      toast.success("Coupon TOYZ10 applied! You'll receive 10% off at final checkout.");
     } else {
-      toast.error("Invalid coupon code. Try 'TOYZE10'");
+      toast.error("Invalid coupon code. Try 'TOYZ10'");
     }
   };
 
@@ -195,7 +195,7 @@ function Cart() {
                   type="text"
                   value={couponCode}
                   onChange={(e) => setCouponCode(e.target.value)}
-                  placeholder="Enter Coupon Code (e.g. TOYZE10)"
+                  placeholder="Enter Coupon Code (e.g. TOYZ10)"
                   className="w-full rounded-xl border px-3 py-2 text-xs uppercase placeholder:normal-case outline-none focus:border-secondary"
                 />
                 <Button type="submit" size="sm" variant="outline" className="shrink-0 font-bold">
@@ -204,7 +204,7 @@ function Cart() {
               </form>
               {couponApplied && (
                 <p className="mt-2 text-xs font-semibold text-success flex items-center gap-1">
-                  <Sparkles className="size-3.5" /> Coupon TOYZE10 active!
+                  <Sparkles className="size-3.5" /> Coupon TOYZ10 active!
                 </p>
               )}
             </div>
@@ -245,6 +245,10 @@ function Cart() {
               <div className="flex items-center gap-2">
                 <Truck className="size-4 text-secondary" />
                 <span>Pan-India Delivery via Trusted Couriers</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <RotateCcw className="size-4 text-secondary" />
+                <span>Same-Day Return Policy on Delivery</span>
               </div>
             </div>
           </div>

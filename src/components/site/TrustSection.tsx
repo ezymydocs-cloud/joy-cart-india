@@ -19,8 +19,8 @@ export function TrustSection() {
     },
     {
       icon: RotateCcw,
-      title: "Easy Replacement",
-      desc: "7-day doorstep replacement guarantee on transit damages",
+      title: "Same-Day Returns",
+      desc: "Return accepted on the delivery day itself (no next-day delays)",
     },
   ];
 

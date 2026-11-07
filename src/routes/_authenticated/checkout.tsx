@@ -19,10 +19,10 @@ import { Input } from "@/components/ui/input";
 export const Route = createFileRoute("/_authenticated/checkout")({
   head: () => ({
     meta: [
-      { title: "Checkout | TrendyToyze" },
-      { name: "description", content: "Choose your address and payment to place your TrendyToyze order." },
-      { property: "og:title", content: "Checkout | TrendyToyze" },
-      { property: "og:description", content: "Place your TrendyToyze order." },
+      { title: "Checkout | TrendyToyz" },
+      { name: "description", content: "Choose your address and payment to place your TrendyToyz order." },
+      { property: "og:title", content: "Checkout | TrendyToyz" },
+      { property: "og:description", content: "Place your TrendyToyz order." },
     ],
   }),
   component: Checkout,

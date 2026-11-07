@@ -7,11 +7,11 @@ const MESSAGES = [
   {
     icon: Sparkles,
     text: "Festive Toy Sale! Get 10% OFF on your order with coupon",
-    code: "TOYZE10",
+    code: "TOYZ10",
   },
   {
     icon: Truck,
-    text: "Fast Pan-India Delivery · Free Shipping on orders over ₹499",
+    text: "Fast Pan-India Delivery · Same-Day Return Policy on Delivery",
   },
   {
     icon: Phone,

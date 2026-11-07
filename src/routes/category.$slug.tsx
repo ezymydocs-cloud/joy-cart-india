@@ -5,10 +5,10 @@ import { ProductListing, useCategories, type ListingFilters } from "@/components
 export const Route = createFileRoute("/category/$slug")({
   head: () => ({
     meta: [
-      { title: "Shop by Category | TrendyToyze" },
-      { name: "description", content: "Browse toys in this TrendyToyze category." },
-      { property: "og:title", content: "Shop by Category | TrendyToyze" },
-      { property: "og:description", content: "Browse toys in this TrendyToyze category." },
+      { title: "Shop by Category | TrendyToyz" },
+      { name: "description", content: "Browse toys in this TrendyToyz category." },
+      { property: "og:title", content: "Shop by Category | TrendyToyz" },
+      { property: "og:description", content: "Browse toys in this TrendyToyz category." },
     ],
   }),
   component: CategoryPage,

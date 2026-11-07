@@ -13,10 +13,10 @@ import { Label } from "@/components/ui/label";
 export const Route = createFileRoute("/_authenticated/account")({
   head: () => ({
     meta: [
-      { title: "My Account | TrendyToyze" },
-      { name: "description", content: "Manage your TrendyToyze profile and saved addresses." },
-      { property: "og:title", content: "My Account | TrendyToyze" },
-      { property: "og:description", content: "Manage your TrendyToyze profile and addresses." },
+      { title: "My Account | TrendyToyz" },
+      { name: "description", content: "Manage your TrendyToyz profile and saved addresses." },
+      { property: "og:title", content: "My Account | TrendyToyz" },
+      { property: "og:description", content: "Manage your TrendyToyz profile and addresses." },
     ],
   }),
   component: Account,

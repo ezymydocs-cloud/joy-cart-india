@@ -10,7 +10,7 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 
 export const Route = createFileRoute("/_authenticated/admin/coupons")({
-  head: () => ({ meta: [{ title: "Coupons | TrendyToyze Admin" }] }),
+  head: () => ({ meta: [{ title: "Coupons | TrendyToyz Admin" }] }),
   component: Coupons,
 });
 

@@ -25,10 +25,10 @@ import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 export const Route = createFileRoute("/product/$slug")({
   head: () => ({
     meta: [
-      { title: "Toy Details | TrendyToyze" },
-      { name: "description", content: "See price, details and package contents at TrendyToyze." },
-      { property: "og:title", content: "Toy Details | TrendyToyze" },
-      { property: "og:description", content: "See price, details and package contents at TrendyToyze." },
+      { title: "Toy Details | TrendyToyz" },
+      { name: "description", content: "See price, details and package contents at TrendyToyz." },
+      { property: "og:title", content: "Toy Details | TrendyToyz" },
+      { property: "og:description", content: "See price, details and package contents at TrendyToyz." },
     ],
   }),
   component: ProductPage,
@@ -120,7 +120,7 @@ function ProductPage() {
     if (navigator.share) {
       navigator.share({
         title: p.name,
-        text: `Check out ${p.name} on TrendyToyze!`,
+        text: `Check out ${p.name} on TrendyToyz!`,
         url: window.location.href,
       });
     } else {
@@ -200,8 +200,8 @@ function ProductPage() {
             </div>
             <div className="flex flex-col items-center">
               <RotateCcw className="size-5 text-secondary" />
-              <span className="mt-1 font-bold text-[11px]">7-Day Return</span>
-              <span className="text-[10px] text-muted-foreground">On transit damage</span>
+              <span className="mt-1 font-bold text-[11px]">Same-Day Return</span>
+              <span className="text-[10px] text-muted-foreground">On delivery date only</span>
             </div>
           </div>
         </div>

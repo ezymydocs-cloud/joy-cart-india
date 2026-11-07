@@ -1,5 +1,5 @@
 import { Link, useNavigate } from "@tanstack/react-router";
-import { ShoppingBag, X, Trash2, ArrowRight, ShieldCheck, Truck } from "lucide-react";
+import { ShoppingBag, X, Trash2, ArrowRight, ShieldCheck, Truck, RotateCcw } from "lucide-react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { useCartProducts } from "@/lib/useCartProducts";
@@ -196,7 +196,7 @@ export function CartDrawer({ open, onOpenChange }: { open: boolean; onOpenChange
                 <ShieldCheck className="size-3.5 text-success" /> 100% Child Safe
               </span>
               <span className="flex items-center gap-1">
-                <Truck className="size-3.5 text-secondary" /> Fast Dispatch
+                <RotateCcw className="size-3.5 text-secondary" /> Same-Day Return
               </span>
             </div>
           </div>

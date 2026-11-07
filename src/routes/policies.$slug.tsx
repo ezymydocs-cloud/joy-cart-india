@@ -5,15 +5,15 @@ const POLICIES: Record<string, { title: string; body: string[] }> = {
   privacy: {
     title: "Privacy Policy",
     body: [
-      "TrendyToyze collects your name, phone number, email and delivery address only to process and deliver your orders and to contact you about them.",
+      "TrendyToyz collects your name, phone number, email and delivery address only to process and deliver your orders and to contact you about them.",
       "We never sell your personal data. Payment details for online payments are handled securely by our payment partner and are not stored by us.",
-      "To ask for your data to be updated or deleted, email support@trendytoyze.com.",
+      "To ask for your data to be updated or deleted, email support@trendytoyz.com.",
     ],
   },
   terms: {
     title: "Terms & Conditions",
     body: [
-      "By placing an order on TrendyToyze you agree to these terms. Prices are in Indian Rupees (INR) and include applicable taxes unless stated otherwise.",
+      "By placing an order on TrendyToyz you agree to these terms. Prices are in Indian Rupees (INR) and include applicable taxes unless stated otherwise.",
       "Product images are for illustration; colours may vary slightly. Stock is limited and orders are confirmed subject to availability.",
       "An account and login are required to place an order.",
     ],
@@ -27,11 +27,12 @@ const POLICIES: Record<string, { title: string; body: string[] }> = {
     ],
   },
   "cancellation-refund": {
-    title: "Cancellation & Refund Policy",
+    title: "Cancellation, Return & Refund Policy",
     body: [
       CANCEL_RULE,
       "You can cancel from My Orders while your order is Placed, Accepted or Packed. Prepaid orders cancelled before shipping are refunded to the original payment method within 5–7 working days.",
-      "For damaged or wrong items, contact us within 48 hours of delivery at support@trendytoyze.com or WhatsApp +91 8446418374 with photos.",
+      "Same-Day Return Policy: Returns or damage claims are strictly accepted on the SAME DAY of delivery only. Any return or replacement request received the next day or later cannot be accepted.",
+      "To initiate a same-day return, contact us immediately on the delivery date via WhatsApp at +91 8446418374 or email support@trendytoyz.com with package photos or unboxing video.",
     ],
   },
 };
@@ -44,10 +45,10 @@ export const Route = createFileRoute("/policies/$slug")({
   },
   head: ({ loaderData }) => ({
     meta: [
-      { title: `${loaderData?.title ?? "Policy"} | TrendyToyze` },
-      { name: "description", content: `${loaderData?.title ?? "Policy"} for TrendyToyze.` },
-      { property: "og:title", content: `${loaderData?.title ?? "Policy"} | TrendyToyze` },
-      { property: "og:description", content: `${loaderData?.title ?? "Policy"} for TrendyToyze.` },
+      { title: `${loaderData?.title ?? "Policy"} | TrendyToyz` },
+      { name: "description", content: `${loaderData?.title ?? "Policy"} for TrendyToyz.` },
+      { property: "og:title", content: `${loaderData?.title ?? "Policy"} | TrendyToyz` },
+      { property: "og:description", content: `${loaderData?.title ?? "Policy"} for TrendyToyz.` },
     ],
   }),
   component: Policy,
@@ -61,7 +62,7 @@ function Policy() {
       <div className="mt-6 space-y-4 text-sm leading-relaxed text-foreground/80 rounded-2xl border bg-card p-6 shadow-xs">
         {p.body.map((b) => <p key={b}>{b}</p>)}
       </div>
-      <p className="mt-6 text-xs text-muted-foreground">Questions or assistance? Contact support@trendytoyze.com or call/WhatsApp +91 8446418374.</p>
+      <p className="mt-6 text-xs text-muted-foreground">Questions or assistance? Contact support@TrendyToyz.com or call/WhatsApp +91 8446418374.</p>
     </div>
   );
 }

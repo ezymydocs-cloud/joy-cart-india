@@ -5,10 +5,10 @@ import { Button } from "@/components/ui/button";
 export const Route = createFileRoute("/_authenticated/order-success/$id")({
   head: () => ({
     meta: [
-      { title: "Order Confirmed | TrendyToyze" },
-      { name: "description", content: "Your TrendyToyze order has been placed." },
-      { property: "og:title", content: "Order Confirmed | TrendyToyze" },
-      { property: "og:description", content: "Your TrendyToyze order has been placed." },
+      { title: "Order Confirmed | TrendyToyz" },
+      { name: "description", content: "Your TrendyToyz order has been placed." },
+      { property: "og:title", content: "Order Confirmed | TrendyToyz" },
+      { property: "og:description", content: "Your TrendyToyz order has been placed." },
     ],
   }),
   component: Success,

@@ -27,7 +27,7 @@ function NotFoundComponent() {
         <p className="mt-2 text-sm text-muted-foreground">The toy or collection you're looking for doesn't exist or has been moved.</p>
         <div className="mt-6">
           <Link to="/" className="inline-flex items-center gap-2 rounded-xl bg-primary px-6 py-2.5 text-sm font-semibold text-primary-foreground shadow-sm transition hover:bg-primary/90">
-            Back to TrendyToyze
+            Back to TrendyToyz
           </Link>
         </div>
       </div>
@@ -63,8 +63,8 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
       { name: "theme-color", content: "#0f172a" },
-      { name: "author", content: "TrendyToyze" },
-      { property: "og:site_name", content: "TrendyToyze" },
+      { name: "author", content: "TrendyToyz" },
+      { property: "og:site_name", content: "TrendyToyz" },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
     ],
@@ -73,6 +73,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { rel: "preconnect", href: "https://fonts.googleapis.com" },
       { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
       { rel: "stylesheet", href: "https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,300..800;1,300..800&family=Inter:wght@300;400;500;600;700;800&display=swap" },
+      { rel: "icon", type: "image/svg+xml", href: "/favicon.svg" },
       { rel: "icon", type: "image/png", sizes: "16x16", href: "/icon-16.png" },
       { rel: "icon", type: "image/png", sizes: "32x32", href: "/icon-32.png" },
       { rel: "icon", type: "image/png", sizes: "192x192", href: "/icon-192.png" },
