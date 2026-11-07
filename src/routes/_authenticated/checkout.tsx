@@ -88,6 +88,8 @@ function Checkout() {
   if (lines.length === 0 && !busy)
     return <div className="py-20 text-center"><p className="font-bold">Your cart is empty.</p><Button asChild className="mt-4"><Link to="/products">Shop toys</Link></Button></div>;
 
+  const cancelOrder = useServerFn(cancelMyOrder);
+
   const submit = async () => {
     if (busy) return;
     if (!addrId) return toast.error("Please add / select a delivery address");
@@ -97,19 +99,24 @@ function Checkout() {
       const res = await place({
         data: { items: c.rows.map((r) => ({ product_id: r.product.id, quantity: r.line.qty })), addressId: addrId, paymentMethod: method, idempotencyKey: idem.current, couponCode: coupon?.code },
       });
-      clear();
       if (method === "razorpay") {
         try {
           const cfg = await startPay({ data: { orderId: res.orderId } });
           const r = await openRazorpay(cfg);
-          if (r) {
-            await verifyPay({ data: { orderId: res.orderId, ...r } });
-            toast.success("Payment successful");
-          } else toast.warning("Payment not completed. You can pay from the order page.");
+          if (!r) throw new Error("Payment was not completed");
+          await verifyPay({ data: { orderId: res.orderId, ...r } });
         } catch (e) {
-          toast.error(e instanceof Error ? e.message : "Payment failed");
+          // Payment failed or was closed: cancel the order, restore stock, keep the cart.
+          try { await cancelOrder({ data: { orderId: res.orderId, reason: "Online payment was not completed" } }); } catch { /* order stays for retry */ }
+          idem.current = crypto.randomUUID();
+          c.refetch();
+          setBusy(false);
+          toast.error(e instanceof Error ? e.message : "Payment failed. Your cart is safe — please try again.");
+          return;
         }
+        toast.success("Payment successful");
       }
+      clear();
       nav({ to: "/order-success/$id", params: { id: res.orderId }, replace: true });
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Could not place order");
