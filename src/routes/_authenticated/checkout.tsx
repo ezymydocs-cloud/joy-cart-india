@@ -9,7 +9,7 @@ import { useCart } from "@/lib/cart";
 import { useCartProducts } from "@/lib/useCartProducts";
 import { fetchSettings, mainImage } from "@/lib/catalog";
 import { addressLines, inr } from "@/lib/format";
-import { getPaymentConfig, placeOrder, startOnlinePayment, verifyOnlinePayment } from "@/lib/orders.functions";
+import { cancelMyOrder, getPaymentConfig, placeOrder, startOnlinePayment, verifyOnlinePayment } from "@/lib/orders.functions";
 import { openRazorpay } from "@/lib/razorpay";
 import { AddressForm, type AddressRow } from "@/components/site/AddressForm";
 import { Totals, CancelRuleNote } from "@/components/site/Summary";
