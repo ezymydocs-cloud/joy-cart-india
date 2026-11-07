@@ -19,8 +19,6 @@ import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as AuthenticatedAccountRouteImport } from './routes/_authenticated/account'
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
 import { Route as AuthenticatedCheckoutRouteImport } from './routes/_authenticated/checkout'
-import { Route as ApiCreateOrderRouteImport } from './routes/api/create-order'
-import { Route as ApiVerifyPaymentRouteImport } from './routes/api/verify-payment'
 import { Route as CategorySlugRouteImport } from './routes/category.$slug'
 import { Route as PoliciesSlugRouteImport } from './routes/policies.$slug'
 import { Route as ProductSlugRouteImport } from './routes/product.$slug'
@@ -88,16 +86,6 @@ const AuthenticatedCheckoutRoute = AuthenticatedCheckoutRouteImport.update({
   id: '/checkout',
   path: '/checkout',
   getParentRoute: () => AuthenticatedRouteRoute,
-} as any)
-const ApiCreateOrderRoute = ApiCreateOrderRouteImport.update({
-  id: '/api/create-order',
-  path: '/api/create-order',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ApiVerifyPaymentRoute = ApiVerifyPaymentRouteImport.update({
-  id: '/api/verify-payment',
-  path: '/api/verify-payment',
-  getParentRoute: () => rootRouteImport,
 } as any)
 const CategorySlugRoute = CategorySlugRouteImport.update({
   id: '/category/$slug',
@@ -212,8 +200,6 @@ export interface FileRoutesByFullPath {
   '/account': typeof AuthenticatedAccountRoute
   '/admin': typeof AuthenticatedAdminRouteWithChildren
   '/checkout': typeof AuthenticatedCheckoutRoute
-  '/api/create-order': typeof ApiCreateOrderRoute
-  '/api/verify-payment': typeof ApiVerifyPaymentRoute
   '/category/$slug': typeof CategorySlugRoute
   '/policies/$slug': typeof PoliciesSlugRoute
   '/product/$slug': typeof ProductSlugRoute
@@ -242,8 +228,6 @@ export interface FileRoutesByTo {
   '/reset-password': typeof ResetPasswordRoute
   '/account': typeof AuthenticatedAccountRoute
   '/checkout': typeof AuthenticatedCheckoutRoute
-  '/api/create-order': typeof ApiCreateOrderRoute
-  '/api/verify-payment': typeof ApiVerifyPaymentRoute
   '/category/$slug': typeof CategorySlugRoute
   '/policies/$slug': typeof PoliciesSlugRoute
   '/product/$slug': typeof ProductSlugRoute
@@ -275,8 +259,6 @@ export interface FileRoutesById {
   '/_authenticated/account': typeof AuthenticatedAccountRoute
   '/_authenticated/admin': typeof AuthenticatedAdminRouteWithChildren
   '/_authenticated/checkout': typeof AuthenticatedCheckoutRoute
-  '/api/create-order': typeof ApiCreateOrderRoute
-  '/api/verify-payment': typeof ApiVerifyPaymentRoute
   '/category/$slug': typeof CategorySlugRoute
   '/policies/$slug': typeof PoliciesSlugRoute
   '/product/$slug': typeof ProductSlugRoute
@@ -308,8 +290,6 @@ export interface FileRouteTypes {
     | '/account'
     | '/admin'
     | '/checkout'
-    | '/api/create-order'
-    | '/api/verify-payment'
     | '/category/$slug'
     | '/policies/$slug'
     | '/product/$slug'
@@ -338,8 +318,6 @@ export interface FileRouteTypes {
     | '/reset-password'
     | '/account'
     | '/checkout'
-    | '/api/create-order'
-    | '/api/verify-payment'
     | '/category/$slug'
     | '/policies/$slug'
     | '/product/$slug'
@@ -370,8 +348,6 @@ export interface FileRouteTypes {
     | '/_authenticated/account'
     | '/_authenticated/admin'
     | '/_authenticated/checkout'
-    | '/api/create-order'
-    | '/api/verify-payment'
     | '/category/$slug'
     | '/policies/$slug'
     | '/product/$slug'
@@ -400,8 +376,6 @@ export interface RootRouteChildren {
   CategoriesRoute: typeof CategoriesRoute
   ProductsRoute: typeof ProductsRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
-  ApiCreateOrderRoute: typeof ApiCreateOrderRoute
-  ApiVerifyPaymentRoute: typeof ApiVerifyPaymentRoute
   CategorySlugRoute: typeof CategorySlugRoute
   PoliciesSlugRoute: typeof PoliciesSlugRoute
   ProductSlugRoute: typeof ProductSlugRoute
@@ -479,20 +453,6 @@ declare module '@tanstack/react-router' {
       fullPath: '/checkout'
       preLoaderRoute: typeof AuthenticatedCheckoutRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/api/create-order': {
-      id: '/api/create-order'
-      path: '/api/create-order'
-      fullPath: '/api/create-order'
-      preLoaderRoute: typeof ApiCreateOrderRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/verify-payment': {
-      id: '/api/verify-payment'
-      path: '/api/verify-payment'
-      fullPath: '/api/verify-payment'
-      preLoaderRoute: typeof ApiVerifyPaymentRouteImport
-      parentRoute: typeof rootRouteImport
     }
     '/category/$slug': {
       id: '/category/$slug'
@@ -683,8 +643,6 @@ const rootRouteChildren: RootRouteChildren = {
   CategoriesRoute: CategoriesRoute,
   ProductsRoute: ProductsRoute,
   ResetPasswordRoute: ResetPasswordRoute,
-  ApiCreateOrderRoute: ApiCreateOrderRoute,
-  ApiVerifyPaymentRoute: ApiVerifyPaymentRoute,
   CategorySlugRoute: CategorySlugRoute,
   PoliciesSlugRoute: PoliciesSlugRoute,
   ProductSlugRoute: ProductSlugRoute,

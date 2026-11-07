@@ -8,58 +8,36 @@ export const Route = createFileRoute("/api/public/img/$bucket/$")({
     handlers: {
       GET: async ({ params }) => {
         const bucket = params.bucket;
-        let path = params._splat ?? "";
-        try {
-          path = decodeURIComponent(path).replace(/^\/+/, "");
-        } catch {
-          path = path.replace(/^\/+/, "");
-        }
-
+        const path = params._splat ?? "";
         if (!ALLOWED.has(bucket) || !path || path.includes("..")) {
-          return new Response(null, { status: 302, headers: { Location: FALLBACK } });
+          return Response.redirect(new URL(FALLBACK, "http://localhost"), 302);
         }
-
         try {
-          let client;
+          let data: Blob | null = null;
           if (process.env["SUPABASE_SERVICE_ROLE_KEY"]) {
             const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-            client = supabaseAdmin;
+            const res = await supabaseAdmin.storage.from(bucket).download(path);
+            data = res.data;
           } else {
-            const { supabase } = await import("@/integrations/supabase/client");
-            client = supabase;
-          }
-
-          const { data, error } = await client.storage.from(bucket).download(path);
-          if (!error && data) {
-            return new Response(data, {
-              headers: {
-                "content-type": data.type || "image/jpeg",
-                "cache-control": "public, max-age=31536000, immutable",
-              },
-            });
-          }
-
-          // Fallback: if download failed, check publicUrl
-          try {
-            const { data: pubData } = client.storage.from(bucket).getPublicUrl(path);
-            if (pubData?.publicUrl) {
-              const res = await fetch(pubData.publicUrl);
-              if (res.ok && res.body) {
-                return new Response(res.body, {
-                  headers: {
-                    "content-type": res.headers.get("content-type") || "image/jpeg",
-                    "cache-control": "public, max-age=31536000, immutable",
-                  },
-                });
-              }
+            // Fallback: publishable client (works for public buckets / permissive policies)
+            const { createClient } = await import("@supabase/supabase-js");
+            const url = process.env["SUPABASE_URL"] ?? process.env["VITE_SUPABASE_URL"];
+            const key = process.env["SUPABASE_PUBLISHABLE_KEY"] ?? process.env["VITE_SUPABASE_PUBLISHABLE_KEY"];
+            if (url && key) {
+              const pub = createClient(url, key, { auth: { persistSession: false } });
+              const res = await pub.storage.from(bucket).download(path);
+              data = res.data;
             }
-          } catch { /* ignore fallback error */ }
-
-          console.error("[img-proxy] Storage download failed for", bucket, path, error?.message || error);
-          return new Response(null, { status: 302, headers: { Location: FALLBACK } });
-        } catch (err) {
-          console.error("[img-proxy] Error retrieving image:", err);
-          return new Response(null, { status: 302, headers: { Location: FALLBACK } });
+          }
+          if (!data) return new Response(null, { status: 302, headers: { location: FALLBACK } });
+          return new Response(data, {
+            headers: {
+              "content-type": data.type || "image/jpeg",
+              "cache-control": "public, max-age=31536000, immutable",
+            },
+          });
+        } catch {
+          return new Response(null, { status: 302, headers: { location: FALLBACK } });
         }
       },
     },

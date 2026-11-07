@@ -17,7 +17,7 @@ function dbError(e: { message?: string } | null) {
 }
 
 async function createRazorpayOrder(orderId: string, orderNumber: string, total: number) {
-  const keyId = process.env["RAZORPAY_KEY_ID"] || process.env["VITE_RAZORPAY_KEY_ID"];
+  const keyId = process.env["RAZORPAY_KEY_ID"];
   const secret = process.env["RAZORPAY_KEY_SECRET"];
   if (!keyId || !secret) throw new Error("Online payment is not configured");
   const res = await fetch("https://api.razorpay.com/v1/orders", {
@@ -36,8 +36,7 @@ async function createRazorpayOrder(orderId: string, orderNumber: string, total: 
 }
 
 export const getPaymentConfig = createServerFn({ method: "GET" }).handler(async () => {
-  const keyId = process.env["RAZORPAY_KEY_ID"] || process.env["VITE_RAZORPAY_KEY_ID"];
-  return { razorpayConfigured: !!(keyId && process.env["RAZORPAY_KEY_SECRET"]) };
+  return { razorpayConfigured: !!(process.env["RAZORPAY_KEY_ID"] && process.env["RAZORPAY_KEY_SECRET"]) };
 });
 
 export const placeOrder = createServerFn({ method: "POST" })
@@ -54,8 +53,7 @@ export const placeOrder = createServerFn({ method: "POST" })
       .parse(d),
   )
   .handler(async ({ data, context }) => {
-    const keyId = process.env["RAZORPAY_KEY_ID"] || process.env["VITE_RAZORPAY_KEY_ID"];
-    if (data.paymentMethod === "razorpay" && !(keyId && process.env["RAZORPAY_KEY_SECRET"])) {
+    if (data.paymentMethod === "razorpay" && !(process.env["RAZORPAY_KEY_ID"] && process.env["RAZORPAY_KEY_SECRET"])) {
       throw new Error("Online payment is not available right now. Please try again later.");
     }
     const { data: res, error } = await context.supabase.rpc("place_order", {
@@ -67,7 +65,7 @@ export const placeOrder = createServerFn({ method: "POST" })
     });
     if (error) throw dbError(error);
     const r = res as { order_id: string; order_number: string; duplicate: boolean };
-    if (!r.duplicate && data.paymentMethod === "cod") await sendOrderEmails(r.order_id, "placed", origin());
+    if (!r.duplicate) await sendOrderEmails(r.order_id, "placed", origin());
     return { orderId: r.order_id, orderNumber: r.order_number };
   });
 
@@ -98,19 +96,16 @@ export const verifyOnlinePayment = createServerFn({ method: "POST" })
     if (hex !== data.razorpay_signature) throw new Error("Payment verification failed");
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     await supabaseAdmin.from("orders").update({ payment_status: "paid", razorpay_payment_id: data.razorpay_payment_id }).eq("id", o.id);
-    await sendOrderEmails(o.id, "placed", origin());
     return { ok: true };
   });
 
 export const cancelMyOrder = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((d) => z.object({ orderId: z.string().uuid(), reason: z.string().max(300).optional(), silent: z.boolean().optional() }).parse(d))
+  .inputValidator((d) => z.object({ orderId: z.string().uuid(), reason: z.string().max(300).optional() }).parse(d))
   .handler(async ({ data, context }) => {
     const { error } = await context.supabase.rpc("cancel_my_order", { p_order_id: data.orderId, p_reason: data.reason ?? "" });
     if (error) throw dbError(error);
-    if (!data.silent) {
-      await sendOrderEmails(data.orderId, "cancelled", origin());
-    }
+    await sendOrderEmails(data.orderId, "cancelled", origin());
     return { ok: true };
   });
 

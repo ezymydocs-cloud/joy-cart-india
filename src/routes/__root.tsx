@@ -22,12 +22,11 @@ function NotFoundComponent() {
   return (
     <div className="flex min-h-[60vh] items-center justify-center px-4">
       <div className="max-w-md text-center">
-        <h1 className="text-7xl font-bold tracking-tight text-primary">404</h1>
-        <h2 className="mt-4 text-xl font-semibold text-foreground">Page Not Found</h2>
-        <p className="mt-2 text-sm text-muted-foreground">The toy or collection you're looking for doesn't exist or has been moved.</p>
+        <h1 className="text-7xl text-secondary">404</h1>
+        <h2 className="mt-4 text-xl">Oops! This page ran away to play.</h2>
         <div className="mt-6">
-          <Link to="/" className="inline-flex items-center gap-2 rounded-xl bg-primary px-6 py-2.5 text-sm font-semibold text-primary-foreground shadow-sm transition hover:bg-primary/90">
-            Back to TrendyToyz
+          <Link to="/" className="inline-flex rounded-full bg-primary px-5 py-2 font-bold text-primary-foreground">
+            Back to the toy box
           </Link>
         </div>
       </div>
@@ -62,7 +61,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { name: "theme-color", content: "#0f172a" },
+      { name: "theme-color", content: "#0B2A6B" },
       { name: "author", content: "TrendyToyz" },
       { property: "og:site_name", content: "TrendyToyz" },
       { property: "og:type", content: "website" },
@@ -72,14 +71,13 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { rel: "stylesheet", href: appCss },
       { rel: "preconnect", href: "https://fonts.googleapis.com" },
       { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
-      { rel: "stylesheet", href: "https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,300..800;1,300..800&family=Inter:wght@300;400;500;600;700;800&display=swap" },
-      { rel: "icon", type: "image/svg+xml", href: "/favicon.svg" },
+      { rel: "stylesheet", href: "https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@400;600;700;800&display=swap" },
       { rel: "icon", type: "image/png", sizes: "16x16", href: "/icon-16.png" },
       { rel: "icon", type: "image/png", sizes: "32x32", href: "/icon-32.png" },
       { rel: "icon", type: "image/png", sizes: "192x192", href: "/icon-192.png" },
       { rel: "icon", href: "/favicon.ico", sizes: "any" },
       { rel: "apple-touch-icon", sizes: "180x180", href: "/apple-touch-icon.png" },
-
+      { rel: "manifest", href: "/manifest.webmanifest" },
     ],
   }),
   shellComponent: RootShell,
@@ -115,7 +113,7 @@ function RootComponent() {
           ) : (
             <div className="flex min-h-screen flex-col">
               <SiteHeader />
-              <main className="flex-1 pb-16 md:pb-0">
+              <main className="flex-1">
                 <Outlet />
               </main>
               <SiteFooter />

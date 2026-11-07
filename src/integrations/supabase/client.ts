@@ -47,8 +47,10 @@ function createSupabaseFetch(supabaseUrl: string, supabaseKey: string): typeof f
 
 
 function createSupabaseClient() {
-  const SUPABASE_URL = import.meta.env['VITE_SUPABASE_URL'] || process.env['SUPABASE_URL'] || 'https://hhrgtxpupgzjzstfzclw.supabase.co';
-  const SUPABASE_PUBLISHABLE_KEY = import.meta.env['VITE_SUPABASE_PUBLISHABLE_KEY'] || process.env['SUPABASE_PUBLISHABLE_KEY'] || 'sb_publishable__But7U88H7fh0FtfqiRCHQ_fMCVUrmM';
+  // Use import.meta.env for client-side (Vite build-time replacement)
+  // Fall back to process.env for SSR (server-side rendering)
+  const SUPABASE_URL = import.meta.env['VITE_SUPABASE_URL'] || process.env['SUPABASE_URL'];
+  const SUPABASE_PUBLISHABLE_KEY = import.meta.env['VITE_SUPABASE_PUBLISHABLE_KEY'] || process.env['SUPABASE_PUBLISHABLE_KEY'];
 
   if (!SUPABASE_URL || !SUPABASE_PUBLISHABLE_KEY) {
     const missing = [
@@ -65,7 +67,7 @@ function createSupabaseClient() {
       fetch: createSupabaseFetch(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY),
     },
     auth: {
-      storage: typeof window !== 'undefined' ? window.localStorage : undefined,
+      storage: brokeredPreviewStorage(),
       persistSession: true,
       autoRefreshToken: true,
     },

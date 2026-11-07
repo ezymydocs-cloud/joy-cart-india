@@ -16,14 +16,6 @@ dist-ssr
 .nitro
 *.local
 
-# Environment
-.env
-.env.*
-!.env.example
-
-# Duplicate extracted directory
-joy-cart-india-main/
-
 # Wrangler / Cloudflare
 .wrangler/
 .dev.vars

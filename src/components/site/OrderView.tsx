@@ -74,21 +74,12 @@ export function CustomerOrderView({ id, showRule }: { id: string; showRule?: boo
             <button aria-label="Copy AWB" onClick={() => { navigator.clipboard.writeText(o.awb_number ?? ""); toast.success("AWB copied"); }}><Copy className="size-4" /></button>
           </div>
           {o.tracking_url ? (
-            <Button asChild className="mt-3 bg-secondary text-secondary-foreground hover:bg-secondary/90"><a href={o.tracking_url} target="_blank" rel="noreferrer"><ExternalLink /> Track Shipment</a></Button>
+            <Button asChild variant="sun" className="mt-3"><a href={o.tracking_url} target="_blank" rel="noreferrer"><ExternalLink /> Track Shipment</a></Button>
           ) : (
-            <Button className="mt-3 bg-secondary text-secondary-foreground hover:bg-secondary/90" onClick={() => { navigator.clipboard.writeText(o.awb_number ?? ""); toast.success("AWB copied. Use it on the courier's website."); }}><Copy /> Copy AWB to track</Button>
+            <Button variant="sun" className="mt-3" onClick={() => { navigator.clipboard.writeText(o.awb_number ?? ""); toast.success("AWB copied. Use it on the courier's website."); }}><Copy /> Copy AWB to track</Button>
           )}
         </div>
       ) : null}
-
-      {status === "delivered" && (
-        <div className="rounded-2xl border border-secondary/30 bg-secondary/10 p-4 text-xs sm:text-sm">
-          <p className="font-bold text-foreground">📦 Delivered</p>
-          <p className="mt-1 text-muted-foreground">
-            Please check your toy box. <b>Same-day return policy applies:</b> Any damage or replacement requests must be reported on the <b>same day of delivery</b>. Contact WhatsApp (+91 8446418374) or email support@trendytoyz.com with unboxing photos/video. Next-day return requests cannot be accepted.
-          </p>
-        </div>
-      )}
 
       {o.payment_method === "razorpay" && o.payment_status === "pending" && status !== "cancelled" && (
         <div className="flex flex-wrap items-center justify-between gap-2 rounded-2xl border border-secondary p-4">
