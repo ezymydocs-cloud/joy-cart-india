@@ -74,11 +74,11 @@ function AuthPage() {
           const msg = error.message.toLowerCase();
           if (msg.includes("email not confirmed")) {
             throw new Error(
-              "Email confirmation is enabled in your Supabase project. Turn off 'Confirm email' in Supabase Dashboard -> Authentication -> Providers -> Email."
+              "Email confirmation is enabled in Supabase. Please turn off 'Confirm email' in Supabase Dashboard -> Authentication -> Providers -> Email."
             );
           }
           if (msg.includes("invalid login credentials")) {
-            throw new Error("Incorrect email or password. Please try again or create a new account.");
+            throw new Error("Invalid email or password. Please check your credentials or click 'Sign up' to create an account.");
           }
           throw error;
         }
@@ -102,24 +102,27 @@ function AuthPage() {
           if (msg.includes("already registered") || msg.includes("already in use")) {
             toast.info("Account already exists. Logging you in...");
             const signInRes = await supabase.auth.signInWithPassword({ email, password: f.password });
-            if (signInRes.error) throw signInRes.error;
+            if (signInRes.error) {
+              if (signInRes.error.message.toLowerCase().includes("email not confirmed")) {
+                throw new Error("Account exists, but email is not confirmed yet. Turn off 'Confirm email' in Supabase Dashboard.");
+              }
+              throw signInRes.error;
+            }
             return;
           }
           throw error;
         }
 
-        // Automatic instant login (bypassing verification requirement)
+        // Automatic instant login
         if (data.session) {
           toast.success("Account created successfully!");
-        } else {
-          // Attempt immediate login in case auto-confirm is enabled
+        } else if (data.user?.identities?.length === 0) {
+          toast.info("Account already exists. Signing in...");
           const signInRes = await supabase.auth.signInWithPassword({ email, password: f.password });
-          if (signInRes.data?.session) {
-            toast.success("Account created successfully!");
-          } else {
-            // If Supabase strictly holds confirmation
-            setSent(true);
-          }
+          if (signInRes.error) throw signInRes.error;
+        } else {
+          // If Supabase has 'Confirm email' turned ON
+          setSent(true);
         }
       }
     } catch (err) {
