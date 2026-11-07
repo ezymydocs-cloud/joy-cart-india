@@ -132,24 +132,6 @@ function AuthPage() {
     }
   };
 
-  const social = async (p: "google" | "apple") => {
-    try {
-      const { error } = await supabase.auth.signInWithOAuth({
-        provider: p,
-        options: { redirectTo: window.location.origin + "/auth" },
-      });
-      if (error) {
-        toast.error(
-          `${p === "google" ? "Google" : "Apple"} sign-in is not enabled in your Supabase project. Please sign in with email & password.`
-        );
-      }
-    } catch {
-      toast.error(
-        `${p === "google" ? "Google" : "Apple"} sign-in is not configured. Please use email & password.`
-      );
-    }
-  };
-
   return (
     <div className="mx-auto max-w-md px-4 py-12 sm:px-6">
       <div className="rounded-3xl border bg-card p-6 sm:p-8 shadow-xs">
@@ -187,17 +169,6 @@ function AuthPage() {
               <p className="mt-1 text-center text-xs text-secondary font-semibold">
                 Please log in to continue to secure checkout.
               </p>
-            )}
-
-            {mode !== "forgot" && (
-              <div className="mt-5 grid gap-2">
-                <Button variant="outline" className="rounded-xl text-xs font-semibold" onClick={() => social("google")}>
-                  Continue with Google
-                </Button>
-                <div className="my-2 flex items-center gap-2 text-center text-xs text-muted-foreground before:h-px before:flex-1 before:bg-border after:h-px after:flex-1 after:bg-border">
-                  or use email
-                </div>
-              </div>
             )}
 
             <form onSubmit={submit} className="space-y-3.5">
