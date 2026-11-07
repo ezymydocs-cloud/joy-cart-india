@@ -8,10 +8,10 @@ import { Input } from "@/components/ui/input";
 export const Route = createFileRoute("/reset-password")({
   head: () => ({
     meta: [
-      { title: "Set a New Password | TrendyToyz" },
-      { name: "description", content: "Choose a new password for your TrendyToyz account." },
-      { property: "og:title", content: "Set a New Password | TrendyToyz" },
-      { property: "og:description", content: "Choose a new password for your TrendyToyz account." },
+      { title: "Set a New Password | TrendyToyze" },
+      { name: "description", content: "Choose a new password for your TrendyToyze account." },
+      { property: "og:title", content: "Set a New Password | TrendyToyze" },
+      { property: "og:description", content: "Choose a new password for your TrendyToyze account." },
     ],
   }),
   component: Reset,

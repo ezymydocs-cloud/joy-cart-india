@@ -2,13 +2,13 @@ export const CANCEL_RULE =
   "Order can be cancelled only before it is shipped. Once shipped and tracking is generated, cancellation is not possible.";
 
 export const BRAND = {
-  name: "TrendyToyz",
-  email: "trendytoyz.info@gmail.com",
+  name: "TrendyToyze",
+  email: "support@trendytoyze.com",
   phone: "+91 8446418374",
   phoneRaw: "8446418374",
   whatsapp: "https://wa.me/918446418374",
-  instagram: "https://instagram.com/trendy_toyzz",
-  instagramHandle: "trendy_toyzz",
+  instagram: "https://instagram.com/trendytoyze",
+  instagramHandle: "trendytoyze",
 };
 
 export type OrderStatus = "placed" | "accepted" | "packed" | "shipped" | "delivered" | "cancelled";

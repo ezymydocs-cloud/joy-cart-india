@@ -14,10 +14,10 @@ export const Route = createFileRoute("/auth")({
   validateSearch: z.object({ redirect: z.string().optional() }),
   head: () => ({
     meta: [
-      { title: "Login or Sign up | TrendyToyz" },
-      { name: "description", content: "Log in or create your TrendyToyz account to place orders and track them." },
-      { property: "og:title", content: "Login or Sign up | TrendyToyz" },
-      { property: "og:description", content: "Log in or create your TrendyToyz account." },
+      { title: "Login or Sign up | TrendyToyze" },
+      { name: "description", content: "Log in or create your TrendyToyze account to place orders and track them." },
+      { property: "og:title", content: "Login or Sign up | TrendyToyze" },
+      { property: "og:description", content: "Log in or create your TrendyToyze account." },
     ],
   }),
   component: AuthPage,
@@ -98,47 +98,111 @@ function AuthPage() {
   };
 
   return (
-    <div className="mx-auto max-w-md px-4 py-10">
-      <div className="rounded-2xl border p-6 shadow-card">
-        <img src="/logo-sm.png" alt="TrendyToyz" className="mx-auto h-24 w-auto" />
+    <div className="mx-auto max-w-md px-4 py-12 sm:px-6">
+      <div className="rounded-3xl border bg-card p-6 sm:p-8 shadow-xs">
+        <div className="text-center">
+          <div className="mx-auto flex size-12 items-center justify-center rounded-2xl bg-primary text-primary-foreground font-bold shadow-xs">
+            <span className="text-xl">✨</span>
+          </div>
+          <div className="mt-2 font-display text-2xl font-bold tracking-tight text-foreground">
+            Trendy<span className="text-secondary">Toyze</span>
+          </div>
+        </div>
+
         {sent ? (
           <div className="mt-6 text-center">
-            <h1 className="text-2xl">Check your email 📬</h1>
-            <p className="mt-2 text-sm text-muted-foreground">We sent a confirmation link to {f.email}. Click it to finish creating your account.</p>
+            <h1 className="text-xl font-bold">Check your email 📬</h1>
+            <p className="mt-2 text-xs text-muted-foreground">We sent a confirmation link to {f.email}. Click it to finish creating your account.</p>
           </div>
         ) : (
           <>
-            <h1 className="mt-4 text-center text-2xl">{mode === "signup" ? "Create your account" : mode === "forgot" ? "Reset password" : "Welcome back!"}</h1>
-            {redirect?.includes("checkout") && <p className="mt-1 text-center text-sm text-muted-foreground">Please log in to place your order.</p>}
+            <h1 className="mt-5 text-center text-xl font-bold text-foreground">
+              {mode === "signup" ? "Create your account" : mode === "forgot" ? "Reset your password" : "Welcome back!"}
+            </h1>
+            {redirect?.includes("checkout") && (
+              <p className="mt-1 text-center text-xs text-secondary font-semibold">
+                Please log in to continue to secure checkout.
+              </p>
+            )}
             {mode !== "forgot" && (
               <div className="mt-5 grid gap-2">
-                <Button variant="outline" onClick={() => social("google")}>Continue with Google</Button>
-                <Button variant="outline" onClick={() => social("apple")}> Continue with Apple</Button>
-                <div className="my-2 text-center text-xs text-muted-foreground">or use email</div>
+                <Button variant="outline" className="rounded-xl text-xs font-semibold" onClick={() => social("google")}>
+                  Continue with Google
+                </Button>
+                <Button variant="outline" className="rounded-xl text-xs font-semibold" onClick={() => social("apple")}>
+                  Continue with Apple
+                </Button>
+                <div className="my-2 flex items-center gap-2 text-center text-xs text-muted-foreground before:h-px before:flex-1 before:bg-border after:h-px after:flex-1 after:bg-border">
+                  or use email
+                </div>
               </div>
             )}
-            <form onSubmit={submit} className="space-y-3">
+            <form onSubmit={submit} className="space-y-3.5">
               {mode === "signup" && (
                 <>
-                  <div><Label>Full name</Label><Input required value={f.name} onChange={(e) => setF({ ...f, name: e.target.value })} /></div>
-                  <div><Label>Mobile number</Label><Input required inputMode="numeric" maxLength={10} placeholder="10-digit number" value={f.phone} onChange={(e) => setF({ ...f, phone: e.target.value.replace(/\D/g, "") })} /></div>
+                  <div>
+                    <Label className="text-xs">Full name</Label>
+                    <Input className="rounded-xl mt-1" required value={f.name} onChange={(e) => setF({ ...f, name: e.target.value })} />
+                  </div>
+                  <div>
+                    <Label className="text-xs">Mobile number</Label>
+                    <Input
+                      className="rounded-xl mt-1"
+                      required
+                      inputMode="numeric"
+                      maxLength={10}
+                      placeholder="10-digit mobile"
+                      value={f.phone}
+                      onChange={(e) => setF({ ...f, phone: e.target.value.replace(/\D/g, "") })}
+                    />
+                  </div>
                 </>
               )}
-              <div><Label>Email</Label><Input type="email" required value={f.email} onChange={(e) => setF({ ...f, email: e.target.value })} /></div>
-              {mode !== "forgot" && <div><Label>Password</Label><Input type="password" required minLength={mode === "signup" ? 8 : 1} value={f.password} onChange={(e) => setF({ ...f, password: e.target.value })} /></div>}
-              <Button type="submit" size="lg" className="w-full" disabled={busy}>{busy ? "Please wait…" : mode === "signup" ? "Sign up" : mode === "forgot" ? "Send reset link" : "Login"}</Button>
-            </form>
-            <div className="mt-4 space-y-1 text-center text-sm">
-              {mode === "login" && <button className="text-secondary" onClick={() => setMode("forgot")}>Forgot password?</button>}
               <div>
-                {mode === "signup" ? "Already have an account? " : "New to TrendyToyz? "}
-                <button className="font-bold text-primary underline" onClick={() => setMode(mode === "signup" ? "login" : "signup")}>{mode === "signup" ? "Login" : "Sign up"}</button>
+                <Label className="text-xs">Email address</Label>
+                <Input className="rounded-xl mt-1" type="email" required value={f.email} onChange={(e) => setF({ ...f, email: e.target.value })} />
+              </div>
+              {mode !== "forgot" && (
+                <div>
+                  <Label className="text-xs">Password</Label>
+                  <Input
+                    className="rounded-xl mt-1"
+                    type="password"
+                    required
+                    minLength={mode === "signup" ? 8 : 1}
+                    value={f.password}
+                    onChange={(e) => setF({ ...f, password: e.target.value })}
+                  />
+                </div>
+              )}
+              <Button type="submit" size="lg" className="w-full rounded-xl bg-secondary text-secondary-foreground hover:bg-secondary/90 font-bold" disabled={busy}>
+                {busy ? "Please wait…" : mode === "signup" ? "Create Account" : mode === "forgot" ? "Send Reset Link" : "Sign In"}
+              </Button>
+            </form>
+            <div className="mt-4 space-y-1.5 text-center text-xs">
+              {mode === "login" && (
+                <div>
+                  <button className="text-secondary font-semibold hover:underline" onClick={() => setMode("forgot")}>
+                    Forgot password?
+                  </button>
+                </div>
+              )}
+              <div className="text-muted-foreground">
+                {mode === "signup" ? "Already have an account? " : "New to TrendyToyze? "}
+                <button
+                  className="font-bold text-foreground hover:text-secondary underline"
+                  onClick={() => setMode(mode === "signup" ? "login" : "signup")}
+                >
+                  {mode === "signup" ? "Login" : "Sign up"}
+                </button>
               </div>
             </div>
           </>
         )}
       </div>
-      <p className="mt-4 text-center text-sm"><Link to="/" className="text-muted-foreground">← Back to shop</Link></p>
+      <p className="mt-4 text-center text-xs text-muted-foreground">
+        <Link to="/" className="hover:text-foreground">← Back to shop</Link>
+      </p>
     </div>
   );
 }

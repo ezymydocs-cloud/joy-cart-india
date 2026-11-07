@@ -4,10 +4,10 @@ import { CustomerOrderView } from "@/components/site/OrderView";
 export const Route = createFileRoute("/_authenticated/orders/$id")({
   head: () => ({
     meta: [
-      { title: "Order Details | TrendyToyz" },
-      { name: "description", content: "Track your TrendyToyz order." },
-      { property: "og:title", content: "Order Details | TrendyToyz" },
-      { property: "og:description", content: "Track your TrendyToyz order." },
+      { title: "Order Details | TrendyToyze" },
+      { name: "description", content: "Track your TrendyToyze order." },
+      { property: "og:title", content: "Order Details | TrendyToyze" },
+      { property: "og:description", content: "Track your TrendyToyze order." },
     ],
   }),
   component: () => {

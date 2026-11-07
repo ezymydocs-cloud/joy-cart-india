@@ -24,7 +24,7 @@ function Settings() {
   const set = (k: string) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => setF({ ...f, [k]: e.target.value });
   const save = async () => {
     const { error } = await supabase.from("store_settings").update({
-      store_name: String(f.store_name ?? "").trim() || "TrendyToyz",
+      store_name: String(f.store_name ?? "").trim() || "TrendyToyze",
       store_address: String(f.store_address ?? "").trim(),
       phone: String(f.phone ?? "").trim(),
       email: String(f.email ?? "").trim(),

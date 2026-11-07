@@ -9,10 +9,10 @@ import { Button } from "@/components/ui/button";
 export const Route = createFileRoute("/_authenticated/orders/")({
   head: () => ({
     meta: [
-      { title: "My Orders | TrendyToyz" },
-      { name: "description", content: "See your TrendyToyz orders and tracking." },
-      { property: "og:title", content: "My Orders | TrendyToyz" },
-      { property: "og:description", content: "See your TrendyToyz orders and tracking." },
+      { title: "My Orders | TrendyToyze" },
+      { name: "description", content: "See your TrendyToyze orders and tracking." },
+      { property: "og:title", content: "My Orders | TrendyToyze" },
+      { property: "og:description", content: "See your TrendyToyze orders and tracking." },
     ],
   }),
   component: MyOrders,
