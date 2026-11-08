@@ -7,7 +7,7 @@ const POLICIES: Record<string, { title: string; body: string[] }> = {
     body: [
       "TrendyToyz collects your name, phone number, email and delivery address only to process and deliver your orders and to contact you about them.",
       "We never sell your personal data. Payment details for online payments are handled securely by our payment partner and are not stored by us.",
-      "To ask for your data to be updated or deleted, email support@trendytoyz.com.",
+      "To ask for your data to be updated or deleted, email trendytoyz.info@gmail.com.",
     ],
   },
   terms: {
@@ -32,7 +32,7 @@ const POLICIES: Record<string, { title: string; body: string[] }> = {
       CANCEL_RULE,
       "You can cancel from My Orders while your order is Placed, Accepted or Packed. Prepaid orders cancelled before shipping are refunded to the original payment method within 5–7 working days.",
       "Same-Day Return Policy: Returns or damage claims are strictly accepted on the SAME DAY of delivery only. Any return or replacement request received the next day or later cannot be accepted.",
-      "To initiate a same-day return, contact us immediately on the delivery date via WhatsApp at +91 8446418374 or email support@trendytoyz.com with package photos or unboxing video.",
+      "To initiate a same-day return, contact us immediately on the delivery date via WhatsApp at +91 8446418374 or email trendytoyz.info@gmail.com with package photos or unboxing video.",
     ],
   },
 };
@@ -62,7 +62,7 @@ function Policy() {
       <div className="mt-6 space-y-4 text-sm leading-relaxed text-foreground/80 rounded-2xl border bg-card p-6 shadow-xs">
         {p.body.map((b) => <p key={b}>{b}</p>)}
       </div>
-      <p className="mt-6 text-xs text-muted-foreground">Questions or assistance? Contact support@TrendyToyz.com or call/WhatsApp +91 8446418374.</p>
+      <p className="mt-6 text-xs text-muted-foreground">Questions or assistance? Contact trendytoyz.info@gmail.com or call/WhatsApp +91 8446418374.</p>
     </div>
   );
 }

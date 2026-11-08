@@ -11,7 +11,7 @@ export const RETURN_RULE =
 
 export const BRAND = {
   name: "TrendyToyz",
-  email: "support@trendytoyz.com",
+  email: "trendytoyz.info@gmail.com",
   phone: "+91 8446418374",
   phoneRaw: "8446418374",
   whatsapp: "https://wa.me/918446418374",

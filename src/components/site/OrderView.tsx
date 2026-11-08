@@ -85,7 +85,7 @@ export function CustomerOrderView({ id, showRule }: { id: string; showRule?: boo
         <div className="rounded-2xl border border-secondary/30 bg-secondary/10 p-4 text-xs sm:text-sm">
           <p className="font-bold text-foreground">📦 Delivered</p>
           <p className="mt-1 text-muted-foreground">
-            Please check your toy box. <b>Same-day return policy applies:</b> Any damage or replacement requests must be reported on the <b>same day of delivery</b>. Contact WhatsApp (+91 8446418374) or email support@trendytoyz.com with unboxing photos/video. Next-day return requests cannot be accepted.
+            Please check your toy box. <b>Same-day return policy applies:</b> Any damage or replacement requests must be reported on the <b>same day of delivery</b>. Contact WhatsApp (+91 8446418374) or email trendytoyz.info@gmail.com with unboxing photos/video. Next-day return requests cannot be accepted.
           </p>
         </div>
       )}

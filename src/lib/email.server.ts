@@ -58,7 +58,7 @@ function layout(origin: string, title: string, body: string) {
     <h1 style="color:${NAVY};font-size:22px;margin:20px 0 8px">${title}</h1>
     ${body}
     <div style="margin-top:28px;padding-top:16px;border-top:1px solid #eef0f6;font-size:12px;color:#6b7394;text-align:center">
-      TrendyToyz · support@trendytoyz.com · +91 8446418374<br>
+      TrendyToyz · trendytoyz.info@gmail.com · +91 8446418374<br>
       <a href="https://instagram.com/trendy_toyzz" style="color:${RED}">@trendy_toyzz</a>
     </div>
   </div></body></html>`;
@@ -158,11 +158,11 @@ async function sendViaEmailJS(templateId: string, params: Record<string, string>
 async function sendViaResend(to: string, subject: string, html: string) {
   const key = process.env["RESEND_API_KEY"];
   if (!key) throw new Error("Email service not configured (RESEND_API_KEY missing)");
-  const from = process.env["RESEND_FROM_EMAIL"] || "TrendyToyz <orders@trendytoyz.com>";
+  const from = process.env["RESEND_FROM_EMAIL"] || "TrendyToyz <trendytoyz.info@gmail.com>";
   const res = await fetch("https://api.resend.com/emails", {
     method: "POST",
     headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" },
-    body: JSON.stringify({ from, to: [to], subject, html, reply_to: "support@trendytoyz.com" }),
+    body: JSON.stringify({ from, to: [to], subject, html, reply_to: "trendytoyz.info@gmail.com" }),
   });
   if (!res.ok) throw new Error(`Resend ${res.status}: ${(await res.text()).slice(0, 300)}`);
 }
@@ -199,7 +199,7 @@ export async function sendOrderEmails(orderId: string, kind: "placed" | OrderSta
     const jobs: { to: string; template: EmailTemplate }[] = [];
     if (kind === "placed") {
       if (d.order.customer_email) jobs.push({ to: d.order.customer_email, template: "order_placed" });
-      jobs.push({ to: d.settings?.admin_notification_email || "support@trendytoyz.com", template: "admin_new_order" });
+      jobs.push({ to: d.settings?.admin_notification_email || "trendytoyz.info@gmail.com", template: "admin_new_order" });
     } else if (d.order.customer_email) {
       jobs.push({ to: d.order.customer_email, template: kind as EmailTemplate });
     }
