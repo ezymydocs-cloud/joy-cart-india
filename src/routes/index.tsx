@@ -12,6 +12,7 @@ import { Carousel, CarouselContent, CarouselItem, type CarouselApi } from "@/com
 import { TrustSection } from "@/components/site/TrustSection";
 import { PromoBannerGrid } from "@/components/site/PromoBannerGrid";
 import { FlashSaleSection } from "@/components/site/FlashSaleSection";
+import { OffersSection } from "@/components/site/OffersSection";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -273,6 +274,9 @@ function Index() {
         subtitle="Fresh in Stock & Trending"
         mode="new_arrivals"
       />
+
+      {/* Promotional Offers & Deals Section */}
+      <OffersSection />
 
       {/* 3. Category Showcase Section (Moved below products) */}
       <section className="mt-8 sm:mt-14">

@@ -57,6 +57,13 @@
       "when": 1794147600000,
       "tag": "0007_grant_admin_trendytoyz_info",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1794147800000,
+      "tag": "0008_offers",
+      "breakpoints": true
     }
   ]
 }

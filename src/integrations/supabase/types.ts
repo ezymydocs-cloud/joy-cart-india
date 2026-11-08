@@ -170,6 +170,66 @@ export type Database = {
         }
         Relationships: []
       }
+      offers: {
+        Row: {
+          badge: string | null
+          coupon_code: string | null
+          created_at: string
+          description: string | null
+          discount_type: string
+          discount_value: number
+          display_location: string
+          end_date: string | null
+          id: string
+          image_url: string | null
+          is_active: boolean
+          link_url: string | null
+          min_order_value: number
+          sort_order: number
+          start_date: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          badge?: string | null
+          coupon_code?: string | null
+          created_at?: string
+          description?: string | null
+          discount_type?: string
+          discount_value?: number
+          display_location?: string
+          end_date?: string | null
+          id?: string
+          image_url?: string | null
+          is_active?: boolean
+          link_url?: string | null
+          min_order_value?: number
+          sort_order?: number
+          start_date?: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          badge?: string | null
+          coupon_code?: string | null
+          created_at?: string
+          description?: string | null
+          discount_type?: string
+          discount_value?: number
+          display_location?: string
+          end_date?: string | null
+          id?: string
+          image_url?: string | null
+          is_active?: boolean
+          link_url?: string | null
+          min_order_value?: number
+          sort_order?: number
+          start_date?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       couriers: {
         Row: {
           created_at: string

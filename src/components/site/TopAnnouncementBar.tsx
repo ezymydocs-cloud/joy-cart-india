@@ -1,9 +1,18 @@
 import { useState, useEffect } from "react";
-import { Sparkles, Truck, Phone, Copy, Check } from "lucide-react";
+import { Sparkles, Truck, Phone, Copy, Check, Flame } from "lucide-react";
 import { toast } from "sonner";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 import { BRAND } from "@/lib/format";
 
-const MESSAGES = [
+type AnnouncementMessage = {
+  icon: typeof Sparkles;
+  text: string;
+  code?: string | null;
+  link?: string | null;
+};
+
+const DEFAULT_MESSAGES: AnnouncementMessage[] = [
   {
     icon: Sparkles,
     text: "Festive Toy Sale! Get 10% OFF on your order with coupon",
@@ -24,15 +33,54 @@ export function TopAnnouncementBar() {
   const [current, setCurrent] = useState(0);
   const [copied, setCopied] = useState(false);
 
+  const { data: activeOffers = [] } = useQuery({
+    queryKey: ["offers", "announcements"],
+    queryFn: async () => {
+      try {
+        const { data, error } = await supabase
+          .from("offers")
+          .select("title,coupon_code,link_url,start_date,end_date,is_active")
+          .eq("is_active", true)
+          .in("display_location", ["all", "announcement"])
+          .order("sort_order", { ascending: true });
+        if (error) return [];
+        return data ?? [];
+      } catch {
+        return [];
+      }
+    },
+    staleTime: 60 * 1000,
+  });
+
+  const now = new Date();
+  const validOfferMessages: AnnouncementMessage[] = activeOffers
+    .filter((o) => {
+      if (!o.is_active) return false;
+      const start = new Date(o.start_date);
+      if (start > now) return false;
+      if (o.end_date && new Date(o.end_date) < now) return false;
+      return true;
+    })
+    .map((o) => ({
+      icon: Flame,
+      text: o.title,
+      code: o.coupon_code,
+      link: o.link_url,
+    }));
+
+  const allMessages = validOfferMessages.length > 0
+    ? [...validOfferMessages, ...DEFAULT_MESSAGES.slice(1)]
+    : DEFAULT_MESSAGES;
+
   useEffect(() => {
     const timer = setInterval(() => {
-      setCurrent((prev) => (prev + 1) % MESSAGES.length);
+      setCurrent((prev) => (prev + 1) % allMessages.length);
     }, 4500);
     return () => clearInterval(timer);
-  }, []);
+  }, [allMessages.length]);
 
-  const msg = MESSAGES[current];
-  const Icon = msg.icon;
+  const activeMsg = allMessages[current % allMessages.length] || allMessages[0];
+  const Icon = activeMsg.icon;
 
   const handleCopyCode = (code: string) => {
     navigator.clipboard.writeText(code);
@@ -53,14 +101,14 @@ export function TopAnnouncementBar() {
         {/* Center rotating promo message */}
         <div className="flex flex-1 items-center justify-center gap-2 text-center font-medium transition-all duration-300">
           <Icon className="size-3.5 shrink-0 text-secondary" />
-          <span className="line-clamp-1">{msg.text}</span>
-          {msg.code && (
+          <span className="line-clamp-1">{activeMsg.text}</span>
+          {activeMsg.code && (
             <button
-              onClick={() => handleCopyCode(msg.code!)}
-              className="inline-flex items-center gap-1 rounded bg-secondary/20 px-1.5 py-0.5 text-[11px] font-bold text-secondary transition hover:bg-secondary hover:text-secondary-foreground"
+              onClick={() => handleCopyCode(activeMsg.code!)}
+              className="inline-flex items-center gap-1 rounded bg-secondary/20 px-1.5 py-0.5 text-[11px] font-bold text-secondary transition hover:bg-secondary hover:text-secondary-foreground cursor-pointer"
               title="Click to copy coupon code"
             >
-              <span>{msg.code}</span>
+              <span>{activeMsg.code}</span>
               {copied ? <Check className="size-3" /> : <Copy className="size-3" />}
             </button>
           )}

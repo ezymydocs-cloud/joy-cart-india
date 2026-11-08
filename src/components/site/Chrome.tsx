@@ -120,6 +120,16 @@ export function SiteHeader() {
             >
               New Arrivals
             </Link>
+            <Link
+              to="/offers"
+              className="relative text-foreground/80 transition hover:text-secondary inline-flex items-center gap-1.5"
+              activeProps={{ className: "text-secondary font-bold" }}
+            >
+              <span>Offers</span>
+              <span className="rounded-full bg-secondary/20 px-1.5 py-0.5 text-[9px] font-extrabold text-secondary tracking-wider">
+                HOT
+              </span>
+            </Link>
           </nav>
 
           {/* Action Icons: Account & Cart */}
@@ -214,6 +224,14 @@ export function SiteHeader() {
                 className="rounded-lg px-2 py-1.5 hover:bg-muted"
               >
                 Browse Categories
+              </Link>
+              <Link
+                to="/offers"
+                onClick={() => setMobileMenuOpen(false)}
+                className="flex items-center justify-between rounded-lg px-2 py-1.5 text-secondary hover:bg-muted font-bold"
+              >
+                <span>Special Offers & Deals</span>
+                <span className="rounded-full bg-secondary/20 px-2 py-0.5 text-[10px] font-extrabold">HOT</span>
               </Link>
               <Link
                 to="/orders"
