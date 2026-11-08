@@ -1,0 +1,1 @@
+ALTER SEQUENCE public.order_number_seq RESTART WITH 101;
