@@ -1,5 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useCategories } from "@/components/site/ProductListing";
+import { formatCategoryName } from "@/lib/format";
 
 export const Route = createFileRoute("/categories")({
   head: () => ({
@@ -56,7 +57,7 @@ function Cats() {
                 )}
               </div>
               <div className="mt-3.5 font-display text-base font-bold text-foreground group-hover:text-secondary transition-colors">
-                {c.name}
+                {formatCategoryName(c.name)}
               </div>
               <span className="mt-1 text-xs text-muted-foreground">Browse collection →</span>
             </Link>

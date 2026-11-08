@@ -1,6 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
 import { ProductListing, useCategories, type ListingFilters } from "@/components/site/ProductListing";
+import { formatCategoryName } from "@/lib/format";
 
 export const Route = createFileRoute("/category/$slug")({
   head: () => ({
@@ -39,7 +40,7 @@ function CategoryPage() {
           ← Back to all categories
         </Link>
         <h1 className="mt-2 font-display text-3xl font-bold tracking-tight text-foreground md:text-4xl">
-          {cat?.name ?? "Loading category…"}
+          {cat ? formatCategoryName(cat.name) : "Loading category…"}
         </h1>
       </div>
       <ProductListing hideCategory filters={{ ...f, category: slug }} onChange={(n) => setF({ ...n, category: undefined })} />

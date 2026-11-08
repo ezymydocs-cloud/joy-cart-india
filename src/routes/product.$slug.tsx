@@ -10,7 +10,7 @@ import {
   PackageOpen,
   ShieldCheck,
   RotateCcw,
-  Star,
+  Sparkles,
   Check,
   Share2,
 } from "lucide-react";
@@ -210,15 +210,9 @@ function ProductPage() {
         <div className="flex flex-col justify-between">
           <div>
             <div className="flex items-center justify-between gap-2">
-              <div className="flex items-center gap-1.5 text-xs text-amber-500">
-                <div className="flex">
-                  {[1, 2, 3, 4, 5].map((s) => (
-                    <Star key={s} className="size-3.5 fill-amber-400 text-amber-400" />
-                  ))}
-                </div>
-                <span className="font-bold text-foreground">4.9</span>
-                <span className="text-muted-foreground">(128 reviews)</span>
-              </div>
+              <span className="inline-flex items-center gap-1 rounded-full bg-secondary/10 px-2.5 py-0.5 text-[11px] font-bold text-secondary uppercase tracking-wider">
+                <Sparkles className="size-3" /> 100% Certified Child-Safe
+              </span>
               <button
                 onClick={handleShare}
                 className="inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground"

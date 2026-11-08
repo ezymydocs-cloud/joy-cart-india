@@ -169,3 +169,43 @@ export const adminRetryEmail = createServerFn({ method: "POST" })
     const ok = await retryEmail(data.logId, origin());
     return { ok };
   });
+
+export const adminClearAllOrders = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    const { data: isAdmin } = await context.supabase.rpc("has_role", { _user_id: context.userId, _role: "admin" });
+    if (!isAdmin) throw new Error("Not authorized");
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+
+    // Select all orders to delete cleanly (cascade cleans order_items, order_timeline, email_logs)
+    const { data: existingOrders, error: fetchErr } = await supabaseAdmin.from("orders").select("id");
+    if (fetchErr) throw fetchErr;
+
+    if (existingOrders && existingOrders.length > 0) {
+      const ids = existingOrders.map((o) => o.id);
+      const { error: delErr } = await supabaseAdmin.from("orders").delete().in("id", ids);
+      if (delErr) throw delErr;
+    }
+    return { ok: true, deletedCount: existingOrders?.length || 0 };
+  });
+
+export const adminFixCategorySpellings = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    const { data: isAdmin } = await context.supabase.rpc("has_role", { _user_id: context.userId, _role: "admin" });
+    if (!isAdmin) throw new Error("Not authorized");
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+
+    const { data: cats } = await supabaseAdmin.from("categories").select("id,name,slug");
+    let fixed = 0;
+    if (cats) {
+      for (const c of cats) {
+        if (/puzzel/i.test(c.name)) {
+          const newName = c.name.replace(/puzzel/gi, "Puzzle");
+          await supabaseAdmin.from("categories").update({ name: newName }).eq("id", c.id);
+          fixed++;
+        }
+      }
+    }
+    return { ok: true, fixed };
+  });

@@ -1,11 +1,14 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
 import { useState } from "react";
-import { RefreshCw } from "lucide-react";
+import { RefreshCw, Trash2 } from "lucide-react";
+import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { inr, fmtDate, STATUS_LABEL, type OrderStatus } from "@/lib/format";
 import { StatusBadge } from "@/components/site/OrderTimeline";
 import { useOrdersRealtime } from "@/lib/useOrdersRealtime";
+import { adminClearAllOrders } from "@/lib/orders.functions";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -14,6 +17,9 @@ export const Route = createFileRoute("/_authenticated/admin/orders/")({ componen
 
 function Orders() {
   useOrdersRealtime();
+  const qc = useQueryClient();
+  const clearOrdersFn = useServerFn(adminClearAllOrders);
+  const [clearing, setClearing] = useState(false);
   const [search, setSearch] = useState("");
   const [status, setStatus] = useState("all");
   const [pay, setPay] = useState("all");
@@ -34,9 +40,42 @@ function Orders() {
       return data;
     },
   });
+  const handleClearOrders = async () => {
+    if (!window.confirm("Are you sure you want to delete ALL test orders to set the store to a clean state for launch?")) return;
+    setClearing(true);
+    try {
+      const res = await clearOrdersFn();
+      toast.success(`Cleared ${res.deletedCount} order(s). Fresh store state ready!`);
+      qc.invalidateQueries({ queryKey: ["admin"] });
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Failed to clear orders");
+    } finally {
+      setClearing(false);
+    }
+  };
+
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between"><h1 className="text-2xl">Orders</h1><Button size="sm" variant="outline" onClick={() => q.refetch()}><RefreshCw className={q.isFetching ? "animate-spin" : ""} /> Refresh</Button></div>
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <h1 className="text-2xl font-bold">Orders</h1>
+        <div className="flex items-center gap-2">
+          {q.data && q.data.length > 0 && (
+            <Button
+              size="sm"
+              variant="destructive"
+              disabled={clearing}
+              onClick={handleClearOrders}
+              className="font-bold text-xs"
+            >
+              <Trash2 className="size-3.5 mr-1" />
+              {clearing ? "Clearing..." : "Clear Test Orders"}
+            </Button>
+          )}
+          <Button size="sm" variant="outline" onClick={() => q.refetch()}>
+            <RefreshCw className={q.isFetching ? "animate-spin mr-1" : "mr-1"} /> Refresh
+          </Button>
+        </div>
+      </div>
       <div className="grid gap-2 rounded-2xl bg-background p-3 sm:grid-cols-2 lg:grid-cols-5">
         <Input placeholder="Order no., name or phone" value={search} onChange={(e) => setSearch(e.target.value)} />
         <Select value={status} onValueChange={setStatus}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent><SelectItem value="all">All statuses</SelectItem>{Object.entries(STATUS_LABEL).map(([k, v]) => <SelectItem key={k} value={k}>{v}</SelectItem>)}</SelectContent></Select>

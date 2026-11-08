@@ -2,6 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Search, SlidersHorizontal, X, RotateCcw } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { PRODUCT_SELECT, type Product } from "@/lib/catalog";
+import { formatCategoryName } from "@/lib/format";
 import { ProductCard, ProductGridSkeleton, ErrorBox } from "./ProductCard";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -122,7 +123,7 @@ export function ProductListing({
                 <SelectItem value="all">All Categories</SelectItem>
                 {cats.data?.map((c) => (
                   <SelectItem key={c.id} value={c.slug}>
-                    {c.name}
+                    {formatCategoryName(c.name)}
                   </SelectItem>
                 ))}
               </SelectContent>

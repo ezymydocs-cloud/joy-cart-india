@@ -25,18 +25,25 @@ export function TrustSection() {
   ];
 
   return (
-    <section className="mt-12 rounded-2xl border bg-card p-6 shadow-xs">
-      <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
+    <section className="mt-6 sm:mt-12 rounded-2xl border bg-card p-3 sm:p-6 shadow-xs">
+      <div className="grid grid-cols-2 gap-2 sm:grid-cols-2 lg:grid-cols-4 sm:gap-6">
         {features.map((f, i) => {
           const Icon = f.icon;
           return (
-            <div key={i} className="flex items-start gap-3.5">
-              <div className="grid size-11 shrink-0 place-items-center rounded-xl bg-secondary/10 text-secondary">
-                <Icon className="size-5" />
+            <div
+              key={i}
+              className="flex items-center sm:items-start gap-2 sm:gap-3.5 p-2 sm:p-0 rounded-xl bg-muted/25 sm:bg-transparent"
+            >
+              <div className="grid size-8 sm:size-11 shrink-0 place-items-center rounded-lg sm:rounded-xl bg-secondary/10 text-secondary">
+                <Icon className="size-4 sm:size-5" />
               </div>
-              <div>
-                <h4 className="text-sm font-bold text-foreground">{f.title}</h4>
-                <p className="mt-0.5 text-xs text-muted-foreground leading-relaxed">{f.desc}</p>
+              <div className="min-w-0 flex-1">
+                <h4 className="text-[11px] sm:text-sm font-bold text-foreground leading-tight truncate sm:whitespace-normal">
+                  {f.title}
+                </h4>
+                <p className="mt-0.5 text-[9px] sm:text-xs text-muted-foreground leading-snug line-clamp-2">
+                  {f.desc}
+                </p>
               </div>
             </div>
           );

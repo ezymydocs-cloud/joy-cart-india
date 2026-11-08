@@ -3,9 +3,10 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
+import { Trash2, CheckCircle2, AlertTriangle } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { fetchSettings } from "@/lib/catalog";
-import { getPaymentConfig } from "@/lib/orders.functions";
+import { adminClearAllOrders, adminFixCategorySpellings, getPaymentConfig } from "@/lib/orders.functions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -21,7 +22,38 @@ function Settings() {
   const pay = useQuery({ queryKey: ["pay-config"], queryFn: () => payFn() });
   const [f, setF] = useState<Record<string, string | boolean>>({});
   useEffect(() => { if (q.data) setF(q.data as never); }, [q.data]);
-  const set = (k: string) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => setF({ ...f, [k]: e.target.value });
+  const set = (k: string) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => setF((prev) => ({ ...prev, [k]: e.target.value }));
+  const clearOrdersFn = useServerFn(adminClearAllOrders);
+  const fixCatsFn = useServerFn(adminFixCategorySpellings);
+  const [clearingOrders, setClearingOrders] = useState(false);
+  const [fixingCats, setFixingCats] = useState(false);
+
+  const handleClearOrders = async () => {
+    if (!window.confirm("Are you sure you want to delete ALL test orders? This will set the store to a fresh zero-order state for launch.")) return;
+    setClearingOrders(true);
+    try {
+      const res = await clearOrdersFn();
+      toast.success(`Cleared ${res.deletedCount} order(s). Store is fresh!`);
+      qc.invalidateQueries({ queryKey: ["admin"] });
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Failed to clear orders");
+    } finally {
+      setClearingOrders(false);
+    }
+  };
+
+  const handleFixCategories = async () => {
+    setFixingCats(true);
+    try {
+      const res = await fixCatsFn();
+      toast.success(`Updated ${res.fixed} category name(s) to 'Puzzle & Blocks'!`);
+      qc.invalidateQueries({ queryKey: ["categories"] });
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Failed to update category");
+    } finally {
+      setFixingCats(false);
+    }
+  };
   const save = async () => {
     const { error } = await supabase.from("store_settings").update({
       store_name: String(f.store_name ?? "").trim() || "TrendyToyz",
@@ -58,7 +90,56 @@ function Settings() {
           {pay.data?.razorpayConfigured ? "Razorpay keys are set up." : "Razorpay keys are not added yet. Online payment will not work until they are added."}
         </p>
       </div>
+
       <Button onClick={save}>Save settings</Button>
+
+      {/* Store Launch Clean-up Tools */}
+      <div className="mt-8 rounded-2xl border border-border bg-card p-5 shadow-xs space-y-4">
+        <div>
+          <h3 className="text-base font-bold text-foreground flex items-center gap-2">
+            <AlertTriangle className="size-4 text-amber-500" /> Store Launch Preparation Tools
+          </h3>
+          <p className="text-xs text-muted-foreground mt-0.5">
+            Use these controls to clean up test data and set the store to a clean, fresh state before launch.
+          </p>
+        </div>
+
+        <div className="grid gap-3 pt-2">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3 rounded-xl border bg-muted/20">
+            <div>
+              <p className="text-xs font-bold text-foreground">Clear All Existing Order History</p>
+              <p className="text-[11px] text-muted-foreground">Deletes all test orders, order items, timeline entries, and email logs.</p>
+            </div>
+            <Button
+              variant="destructive"
+              size="sm"
+              disabled={clearingOrders}
+              onClick={handleClearOrders}
+              className="font-bold shrink-0"
+            >
+              <Trash2 className="size-3.5 mr-1.5" />
+              {clearingOrders ? "Clearing..." : "Clear All Orders"}
+            </Button>
+          </div>
+
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3 rounded-xl border bg-muted/20">
+            <div>
+              <p className="text-xs font-bold text-foreground">Fix Category Spelling in Database</p>
+              <p className="text-[11px] text-muted-foreground">Corrects any 'Puzzel & Blocks' entries to 'Puzzle & Blocks' in Supabase.</p>
+            </div>
+            <Button
+              variant="outline"
+              size="sm"
+              disabled={fixingCats}
+              onClick={handleFixCategories}
+              className="font-bold shrink-0"
+            >
+              <CheckCircle2 className="size-3.5 mr-1.5 text-secondary" />
+              {fixingCats ? "Updating..." : "Fix 'Puzzle & Blocks'"}
+            </Button>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }

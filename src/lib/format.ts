@@ -1,3 +1,8 @@
+export function formatCategoryName(name?: string | null): string {
+  if (!name) return "";
+  return name.replace(/\bpuzzel\b/gi, "Puzzle");
+}
+
 export const CANCEL_RULE =
   "Order can be cancelled only before it is shipped. Once shipped and tracking is generated, cancellation is not possible.";
 
