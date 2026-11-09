@@ -13,6 +13,7 @@ import {
   Gift,
   Truck,
   Percent,
+  Package,
 } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
@@ -22,16 +23,25 @@ import { Button } from "@/components/ui/button";
 export const Route = createFileRoute("/offers")({
   head: () => ({
     meta: [
-      { title: "Special Offers & Discount Coupons | TrendyToyz" },
+      { title: "Special Offers & Buy 1 Get 1 Deals | TrendyToyz" },
       {
         name: "description",
         content:
-          "Save big on child-safe toys, educational games, and plushies. View live coupons, flash sale discounts, and promotional offers at TrendyToyz.",
+          "Save big on child-safe toys, educational games, and plushies. View live coupons, Buy 1 Get 1 Free deals, and promotional offers at TrendyToyz.",
       },
     ],
   }),
   component: OffersPage,
 });
+
+type OfferProductPrice = {
+  product_id: string;
+  product_name: string;
+  product_slug?: string;
+  image_url?: string | null;
+  original_price: number;
+  offer_price: number;
+};
 
 type PublicOffer = {
   id: string;
@@ -49,9 +59,31 @@ type PublicOffer = {
   display_location: string;
   sort_order: number;
   is_active: boolean;
+  bogo_buy_qty?: number;
+  bogo_get_qty?: number;
+  product_prices?: OfferProductPrice[];
 };
 
 const FALLBACK_OFFERS: PublicOffer[] = [
+  {
+    id: "f-bogo",
+    title: "Buy 1 Get 1 FREE Mega Toy Bonanza",
+    description: "Buy any eligible toy from our festive selection and get another toy completely FREE!",
+    badge: "BUY 1 GET 1 FREE",
+    discount_type: "bogo",
+    discount_value: 0,
+    bogo_buy_qty: 1,
+    bogo_get_qty: 1,
+    coupon_code: "BOGOFREE",
+    min_order_value: 0,
+    start_date: new Date().toISOString(),
+    end_date: null,
+    image_url: "/images/teddy.jpg",
+    link_url: "/products",
+    display_location: "all",
+    sort_order: 1,
+    is_active: true,
+  },
   {
     id: "f-1",
     title: "Welcome Toy Fest · Flat 10% OFF",
@@ -63,10 +95,10 @@ const FALLBACK_OFFERS: PublicOffer[] = [
     min_order_value: 0,
     start_date: new Date().toISOString(),
     end_date: null,
-    image_url: "/images/teddy.jpg",
+    image_url: "/images/car.jpg",
     link_url: "/products",
     display_location: "all",
-    sort_order: 1,
+    sort_order: 2,
     is_active: true,
   },
   {
@@ -83,23 +115,6 @@ const FALLBACK_OFFERS: PublicOffer[] = [
     image_url: "/images/blocks.jpg",
     link_url: "/products",
     display_location: "homepage",
-    sort_order: 2,
-    is_active: true,
-  },
-  {
-    id: "f-3",
-    title: "Free Express Pan-India Delivery",
-    description: "Free door-step delivery across all Indian pincodes on orders over ₹499.",
-    badge: "FREE SHIPPING",
-    discount_type: "free_shipping",
-    discount_value: 0,
-    coupon_code: null,
-    min_order_value: 499,
-    start_date: new Date().toISOString(),
-    end_date: null,
-    image_url: "/images/car.jpg",
-    link_url: "/products",
-    display_location: "all",
     sort_order: 3,
     is_active: true,
   },
@@ -117,6 +132,7 @@ function getTimeRemaining(endDateStr: string | null) {
 
 function OffersPage() {
   const [copiedCode, setCopiedCode] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState<"all" | "bogo" | "discount" | "shipping">("all");
 
   const { data: dbOffers = [] } = useQuery({
     queryKey: ["offers", "public-page"],
@@ -128,7 +144,12 @@ function OffersPage() {
           .eq("is_active", true)
           .order("sort_order", { ascending: true });
         if (error) return null;
-        return (data ?? []) as PublicOffer[];
+        return (data ?? []).map((row) => ({
+          ...row,
+          product_prices: Array.isArray(row.product_prices)
+            ? (row.product_prices as unknown as OfferProductPrice[])
+            : [],
+        })) as PublicOffer[];
       } catch {
         return null;
       }
@@ -136,13 +157,21 @@ function OffersPage() {
   });
 
   const now = new Date();
-  const activeOffers = (dbOffers && dbOffers.length > 0 ? dbOffers : FALLBACK_OFFERS).filter((o) => {
-    if (!o.is_active) return false;
-    const start = new Date(o.start_date);
-    if (start > now) return false;
-    if (o.end_date && new Date(o.end_date) < now) return false;
-    return true;
-  });
+  const rawOffers = dbOffers && dbOffers.length > 0 ? dbOffers : FALLBACK_OFFERS;
+  const activeOffers = rawOffers
+    .filter((o) => {
+      if (!o.is_active) return false;
+      const start = new Date(o.start_date);
+      if (start > now) return false;
+      if (o.end_date && new Date(o.end_date) < now) return false;
+      return true;
+    })
+    .filter((o) => {
+      if (activeTab === "bogo") return o.discount_type === "bogo";
+      if (activeTab === "discount") return o.discount_type === "percentage" || o.discount_type === "flat";
+      if (activeTab === "shipping") return o.discount_type === "free_shipping";
+      return true;
+    });
 
   const handleCopy = (code: string) => {
     navigator.clipboard.writeText(code);
@@ -159,11 +188,55 @@ function OffersPage() {
           <Sparkles className="size-3.5" /> TrendyToyz Deals & Promotions
         </span>
         <h1 className="mt-3 font-display text-2xl sm:text-4xl md:text-5xl font-bold tracking-tight text-white">
-          Active Offers & Coupon Codes
+          Active Offers, BOGO & Coupon Codes
         </h1>
         <p className="mx-auto mt-3 max-w-xl text-xs sm:text-sm text-primary-foreground/80 leading-relaxed">
-          Grab verified promo codes, seasonal discounts, and free shipping deals on child-safe toys and games.
+          Grab verified promo codes, Buy 1 Get 1 Free offers, seasonal toy discounts, and free shipping across India.
         </p>
+
+        {/* Filter Pills */}
+        <div className="mt-6 flex flex-wrap justify-center gap-2">
+          <button
+            onClick={() => setActiveTab("all")}
+            className={`rounded-full px-4 py-1.5 text-xs font-bold transition ${
+              activeTab === "all"
+                ? "bg-secondary text-secondary-foreground"
+                : "bg-white/10 text-white hover:bg-white/20"
+            }`}
+          >
+            All Offers
+          </button>
+          <button
+            onClick={() => setActiveTab("bogo")}
+            className={`rounded-full px-4 py-1.5 text-xs font-bold transition flex items-center gap-1 ${
+              activeTab === "bogo"
+                ? "bg-amber-500 text-white"
+                : "bg-white/10 text-white hover:bg-white/20"
+            }`}
+          >
+            <Gift className="size-3" /> Buy 1 Get 1 (BOGO)
+          </button>
+          <button
+            onClick={() => setActiveTab("discount")}
+            className={`rounded-full px-4 py-1.5 text-xs font-bold transition flex items-center gap-1 ${
+              activeTab === "discount"
+                ? "bg-secondary text-secondary-foreground"
+                : "bg-white/10 text-white hover:bg-white/20"
+            }`}
+          >
+            <Percent className="size-3" /> Discounts (% & Flat)
+          </button>
+          <button
+            onClick={() => setActiveTab("shipping")}
+            className={`rounded-full px-4 py-1.5 text-xs font-bold transition flex items-center gap-1 ${
+              activeTab === "shipping"
+                ? "bg-secondary text-secondary-foreground"
+                : "bg-white/10 text-white hover:bg-white/20"
+            }`}
+          >
+            <Truck className="size-3" /> Free Shipping
+          </button>
+        </div>
       </div>
 
       {/* Offers Grid */}
@@ -171,18 +244,28 @@ function OffersPage() {
         {activeOffers.map((o) => {
           const timeLeft = getTimeRemaining(o.end_date);
           const isCopied = copiedCode === o.coupon_code;
+          const isBogo = o.discount_type === "bogo";
+          const productsWithPrices = o.product_prices || [];
 
           return (
             <div
               key={o.id}
-              className="group relative flex flex-col justify-between overflow-hidden rounded-3xl border border-border/80 bg-card p-6 shadow-xs transition-all duration-300 hover:-translate-y-1 hover:border-secondary/50 hover:shadow-hover"
+              className={`group relative flex flex-col justify-between overflow-hidden rounded-3xl border ${
+                isBogo ? "border-amber-500/40 bg-gradient-to-br from-card via-amber-500/5 to-card" : "border-border/80 bg-card"
+              } p-6 shadow-xs transition-all duration-300 hover:-translate-y-1 hover:border-secondary/50 hover:shadow-hover`}
             >
               <div>
                 {/* Header row */}
                 <div className="flex items-center justify-between gap-2">
-                  <span className="inline-flex items-center gap-1 rounded-full bg-secondary/15 px-2.5 py-0.5 text-xs font-bold text-secondary uppercase tracking-wider">
-                    <Flame className="size-3.5 fill-current text-secondary" />
-                    {o.badge || "SPECIAL OFFER"}
+                  <span
+                    className={`inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-bold uppercase tracking-wider ${
+                      isBogo
+                        ? "bg-amber-500 text-white shadow-xs"
+                        : "bg-secondary/15 text-secondary"
+                    }`}
+                  >
+                    {isBogo ? <Gift className="size-3" /> : <Flame className="size-3.5 fill-current text-secondary" />}
+                    {o.badge || (isBogo ? "BUY 1 GET 1 FREE" : "SPECIAL OFFER")}
                   </span>
 
                   {timeLeft ? (
@@ -219,23 +302,63 @@ function OffersPage() {
 
                 {/* Discount highlight badge */}
                 <div className="mt-4 inline-flex items-center gap-2 rounded-xl bg-primary/5 px-3 py-2 border border-primary/10">
-                  {o.discount_type === "free_shipping" ? (
+                  {isBogo ? (
+                    <Gift className="size-4 text-amber-600" />
+                  ) : o.discount_type === "free_shipping" ? (
                     <Truck className="size-4 text-emerald-600" />
                   ) : o.discount_type === "percentage" ? (
                     <Percent className="size-4 text-secondary" />
                   ) : (
-                    <Gift className="size-4 text-amber-600" />
+                    <Tag className="size-4 text-amber-600" />
                   )}
                   <span className="text-xs font-bold text-foreground">
-                    {o.discount_type === "percentage"
+                    {isBogo
+                      ? `BUY ${o.bogo_buy_qty || 1} GET ${o.bogo_get_qty || 1} FREE`
+                      : o.discount_type === "percentage"
                       ? `${o.discount_value}% INSTANT DISCOUNT`
                       : o.discount_type === "flat"
                       ? `${inr(o.discount_value)} FLAT OFF`
-                      : o.discount_type === "free_shipping"
-                      ? "FREE EXPRESS SHIPPING"
-                      : "SPECIAL BUNDLE DEAL"}
+                      : "FREE EXPRESS SHIPPING"}
                   </span>
                 </div>
+
+                {/* Custom Offer Product Prices Section */}
+                {productsWithPrices.length > 0 && (
+                  <div className="mt-4 space-y-2 rounded-2xl bg-muted/40 p-3 border">
+                    <div className="flex items-center justify-between text-xs font-bold text-foreground">
+                      <span className="flex items-center gap-1 text-secondary">
+                        <Package className="size-3.5" /> Eligible Toys & Special Prices:
+                      </span>
+                      <span className="text-[11px] text-muted-foreground font-normal">
+                        {productsWithPrices.length} toys
+                      </span>
+                    </div>
+
+                    <div className="max-h-36 overflow-y-auto space-y-1.5 pr-1">
+                      {productsWithPrices.map((pp) => (
+                        <div
+                          key={pp.product_id}
+                          className="flex items-center justify-between gap-2 rounded-lg bg-card p-2 text-xs border"
+                        >
+                          <div className="flex items-center gap-2 min-w-0 flex-1">
+                            {pp.image_url ? (
+                              <img src={pp.image_url} alt="" className="size-7 rounded object-cover shrink-0" />
+                            ) : (
+                              <span className="text-xs shrink-0">🧸</span>
+                            )}
+                            <span className="truncate text-foreground font-medium">{pp.product_name}</span>
+                          </div>
+                          <div className="flex items-center gap-1.5 shrink-0">
+                            <span className="font-bold text-secondary">{inr(pp.offer_price)}</span>
+                            <span className="text-[10px] text-muted-foreground line-through">
+                              {inr(pp.original_price)}
+                            </span>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
 
               {/* Bottom Actions */}
@@ -269,28 +392,28 @@ function OffersPage() {
       {/* How to Redeem Help Section */}
       <div className="mt-14 rounded-3xl border bg-muted/40 p-6 sm:p-10">
         <h3 className="font-display text-lg sm:text-xl font-bold text-foreground">
-          How to Redeem Your Offers & Coupons
+          How to Redeem Buy 1 Get 1 & Discount Offers
         </h3>
         <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-3 text-xs sm:text-sm">
           <div className="rounded-2xl bg-card p-4 border">
-            <span className="font-bold text-secondary">Step 1</span>
-            <p className="mt-1 font-semibold text-foreground">Copy Promo Code</p>
+            <span className="font-bold text-secondary">Step 1: Choose Your Offer</span>
+            <p className="mt-1 font-semibold text-foreground">Copy Code or Note Deal</p>
             <p className="mt-0.5 text-xs text-muted-foreground">
-              Click the copy button on any coupon above to copy the code to your clipboard.
+              Click the copy button on the promo code or check the BOGO qualification rules above.
             </p>
           </div>
           <div className="rounded-2xl bg-card p-4 border">
-            <span className="font-bold text-secondary">Step 2</span>
-            <p className="mt-1 font-semibold text-foreground">Add Toys to Cart</p>
+            <span className="font-bold text-secondary">Step 2: Add Toys to Cart</span>
+            <p className="mt-1 font-semibold text-foreground">Select Eligible Toys</p>
             <p className="mt-0.5 text-xs text-muted-foreground">
-              Browse categories and add your favorite toys meeting the minimum order amount.
+              For BOGO offers, add at least 2 toys to your cart. For discount offers, meet the minimum cart value.
             </p>
           </div>
           <div className="rounded-2xl bg-card p-4 border">
-            <span className="font-bold text-secondary">Step 3</span>
-            <p className="mt-1 font-semibold text-foreground">Apply & Enjoy Savings</p>
+            <span className="font-bold text-secondary">Step 3: Instant Savings</span>
+            <p className="mt-1 font-semibold text-foreground">Apply at Checkout</p>
             <p className="mt-0.5 text-xs text-muted-foreground">
-              Paste the code during checkout. The discount will instantly reflect on your total!
+              Paste the code during checkout or enjoy the automatic promotional prices on eligible items!
             </p>
           </div>
         </div>

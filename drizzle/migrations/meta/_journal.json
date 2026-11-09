@@ -64,6 +64,13 @@
       "when": 1794147800000,
       "tag": "0008_offers",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1794148000000,
+      "tag": "0009_offer_bogo_and_product_pricing",
+      "breakpoints": true
     }
   ]
 }

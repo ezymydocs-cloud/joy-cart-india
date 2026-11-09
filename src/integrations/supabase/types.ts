@@ -170,7 +170,7 @@ export type Database = {
         }
         Relationships: []
       }
-      couriers: {
+couriers: {
         Row: {
           created_at: string
           id: string
@@ -247,6 +247,8 @@ export type Database = {
       offers: {
         Row: {
           badge: string | null
+          bogo_buy_qty: number
+          bogo_get_qty: number
           coupon_code: string | null
           created_at: string
           description: string | null
@@ -259,6 +261,10 @@ export type Database = {
           is_active: boolean
           link_url: string | null
           min_order_value: number
+          pricing_direction: string
+          pricing_percentage: number
+          pricing_type: string
+          product_prices: Json
           sort_order: number
           start_date: string
           title: string
@@ -266,6 +272,8 @@ export type Database = {
         }
         Insert: {
           badge?: string | null
+          bogo_buy_qty?: number
+          bogo_get_qty?: number
           coupon_code?: string | null
           created_at?: string
           description?: string | null
@@ -278,6 +286,10 @@ export type Database = {
           is_active?: boolean
           link_url?: string | null
           min_order_value?: number
+          pricing_direction?: string
+          pricing_percentage?: number
+          pricing_type?: string
+          product_prices?: Json
           sort_order?: number
           start_date?: string
           title: string
@@ -285,6 +297,8 @@ export type Database = {
         }
         Update: {
           badge?: string | null
+          bogo_buy_qty?: number
+          bogo_get_qty?: number
           coupon_code?: string | null
           created_at?: string
           description?: string | null
@@ -297,6 +311,10 @@ export type Database = {
           is_active?: boolean
           link_url?: string | null
           min_order_value?: number
+          pricing_direction?: string
+          pricing_percentage?: number
+          pricing_type?: string
+          product_prices?: Json
           sort_order?: number
           start_date?: string
           title?: string

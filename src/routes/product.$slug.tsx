@@ -13,6 +13,7 @@ import {
   Sparkles,
   Check,
   Share2,
+  Gift,
 } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
@@ -129,6 +130,44 @@ function ProductPage() {
     }
   };
 
+  const { data: rawOffers = [] } = useQuery({
+    queryKey: ["offers", "for-product-page"],
+    queryFn: async () => {
+      try {
+        const { data, error } = await supabase.from("offers").select("*").eq("is_active", true);
+        if (error) return [];
+        return data ?? [];
+      } catch {
+        return [];
+      }
+    },
+    staleTime: 60 * 1000,
+  });
+
+  const now = new Date();
+  const validOffers = rawOffers.filter((o) => {
+    if (!o.is_active) return false;
+    const s = new Date(o.start_date);
+    if (s > now) return false;
+    if (o.end_date && new Date(o.end_date) < now) return false;
+    return true;
+  });
+
+  // Check if this product has a special offer price configured
+  const productCustomOffer = p
+    ? validOffers
+        .map((o) => {
+          const prices = Array.isArray(o.product_prices) ? (o.product_prices as any[]) : [];
+          const match = prices.find((item) => item.product_id === p.id);
+          if (match) return { offer: o, ...match };
+          return null;
+        })
+        .find(Boolean)
+    : null;
+
+  // Check if there is an active BOGO offer
+  const activeBogo = validOffers.find((o) => o.discount_type === "bogo");
+
   return (
     <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6">
       {/* Breadcrumb */}
@@ -234,7 +273,55 @@ function ProductPage() {
             )}
 
             {/* Pricing Section */}
-            <div className="mt-5 rounded-2xl border bg-card p-4 shadow-xs">
+            {productCustomOffer && (
+              <div className="mt-5 rounded-2xl border-2 border-secondary/40 bg-gradient-to-r from-secondary/15 via-secondary/5 to-secondary/15 p-3.5 shadow-xs">
+                <div className="flex items-center justify-between">
+                  <span className="inline-flex items-center gap-1.5 rounded-full bg-secondary px-2.5 py-0.5 text-[11px] font-extrabold text-secondary-foreground uppercase">
+                    <Sparkles className="size-3" /> {productCustomOffer.offer.badge || "SPECIAL OFFER"}
+                  </span>
+                  {productCustomOffer.offer.coupon_code && (
+                    <span className="font-mono text-xs font-bold text-secondary bg-background px-2 py-0.5 rounded border border-secondary/30">
+                      Code: {productCustomOffer.offer.coupon_code}
+                    </span>
+                  )}
+                </div>
+                <div className="mt-2 flex items-baseline gap-2.5">
+                  <span className="text-2xl sm:text-3xl font-extrabold text-secondary">
+                    {inr(productCustomOffer.offer_price)}
+                  </span>
+                  <span className="text-sm text-muted-foreground line-through">
+                    Regular: {inr(p.price)}
+                  </span>
+                  <span className="text-xs font-bold text-emerald-600 dark:text-emerald-400">
+                    Special Offer Active!
+                  </span>
+                </div>
+                <p className="mt-1 text-xs text-foreground/80 font-medium">
+                  {productCustomOffer.offer.title}
+                </p>
+              </div>
+            )}
+
+            {activeBogo && !productCustomOffer && (
+              <div className="mt-5 flex items-center justify-between gap-3 rounded-2xl border border-amber-500/30 bg-gradient-to-r from-amber-500/15 via-orange-500/10 to-amber-500/15 p-3 text-xs shadow-xs">
+                <div className="flex items-center gap-2">
+                  <Gift className="size-4 text-amber-600 shrink-0" />
+                  <div>
+                    <span className="font-bold text-foreground">
+                      Buy {activeBogo.bogo_buy_qty || 1} Get {activeBogo.bogo_get_qty || 1} FREE!
+                    </span>
+                    <p className="text-[11px] text-muted-foreground">
+                      Add to cart with promo code <b>{activeBogo.coupon_code || "BOGO"}</b>
+                    </p>
+                  </div>
+                </div>
+                <Link to="/offers" className="font-bold text-secondary hover:underline shrink-0 text-xs">
+                  See Offers →
+                </Link>
+              </div>
+            )}
+
+            <div className="mt-4 rounded-2xl border bg-card p-4 shadow-xs">
               <div className="flex items-baseline gap-3">
                 <span className="font-display text-3xl font-bold text-foreground">
                   {inr(p.price)}

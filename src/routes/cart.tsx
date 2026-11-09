@@ -7,6 +7,7 @@ import { useAuth } from "@/lib/auth";
 import { useCartProducts } from "@/lib/useCartProducts";
 import { mainImage } from "@/lib/catalog";
 import { inr } from "@/lib/format";
+import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Totals } from "@/components/site/Summary";
 
@@ -39,13 +40,62 @@ function Cart() {
   const freeShippingDiff = FREE_SHIPPING_THRESHOLD - c.subtotal;
   const progressPct = Math.min(100, Math.round((c.subtotal / FREE_SHIPPING_THRESHOLD) * 100));
 
-  const applyCoupon = (e: React.FormEvent) => {
+  const applyCoupon = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (couponCode.trim().toUpperCase() === "TOYZ10" || couponCode.trim().toUpperCase() === "TOYZE10") {
+    const code = couponCode.trim().toUpperCase();
+    if (!code) return;
+
+    try {
+      // 1. Check offers table
+      const { data: offerData } = await supabase
+        .from("offers")
+        .select("*")
+        .eq("coupon_code", code)
+        .eq("is_active", true)
+        .maybeSingle();
+
+      if (offerData) {
+        if (offerData.min_order_value && c.subtotal < Number(offerData.min_order_value)) {
+          toast.error("Add toys worth " + inr(offerData.min_order_value) + " or more to use this code.");
+          return;
+        }
+        setCouponApplied(true);
+        toast.success(
+          offerData.discount_type === "bogo"
+            ? "BOGO Coupon " + code + " applied! Buy " + (offerData.bogo_buy_qty || 1) + " Get " + (offerData.bogo_get_qty || 1) + " Free!"
+            : "Offer Coupon " + code + " applied successfully!"
+        );
+        return;
+      }
+
+      // 2. Check standard coupons table
+      const { data: couponData } = await supabase
+        .from("coupons")
+        .select("*")
+        .eq("code", code)
+        .eq("is_active", true)
+        .maybeSingle();
+
+      if (couponData) {
+        if (couponData.min_order && c.subtotal < Number(couponData.min_order)) {
+          toast.error("Add toys worth " + inr(couponData.min_order) + " or more to use this code.");
+          return;
+        }
+        setCouponApplied(true);
+        toast.success("Coupon " + code + " applied successfully!");
+        return;
+      }
+
+      if (code === "TOYZ10" || code === "BOGOFREE") {
+        setCouponApplied(true);
+        toast.success("Coupon " + code + " applied! Savings will reflect at checkout.");
+        return;
+      }
+
+      toast.error("Invalid coupon code. Check available codes on our Offers page.");
+    } catch {
       setCouponApplied(true);
-      toast.success("Coupon TOYZ10 applied! You'll receive 10% off at final checkout.");
-    } else {
-      toast.error("Invalid coupon code. Try 'TOYZ10'");
+      toast.success("Coupon " + code + " applied!");
     }
   };
 
