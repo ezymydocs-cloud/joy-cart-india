@@ -162,11 +162,12 @@ function Cart() {
 
             {/* Product Cards */}
             <div className="divide-y rounded-2xl border bg-card p-2 sm:p-4 shadow-xs">
-              {c.rows.map(({ line, product: p }) => {
+              {c.rows.map(({ line, product: p, price, variant }) => {
                 const ship =
                   p.shipping_enabled && Number(p.shipping_charge) > 0 ? Number(p.shipping_charge) : 0;
+                const stockAvailable = variant ? variant.stock : p.stock;
                 return (
-                  <div key={p.id} className="flex gap-4 py-4 first:pt-2 last:pb-2">
+                  <div key={line.variantId ? `${p.id}-${line.variantId}` : p.id} className="flex gap-4 py-4 first:pt-2 last:pb-2">
                     <Link
                       to="/product/$slug"
                       params={{ slug: p.slug }}
@@ -186,7 +187,7 @@ function Cart() {
                             {p.name}
                           </Link>
                           <button
-                            onClick={() => remove(p.id)}
+                            onClick={() => remove(p.id, line.variantId)}
                             aria-label="Remove item"
                             className="text-muted-foreground transition hover:text-destructive p-1"
                           >
@@ -194,15 +195,23 @@ function Cart() {
                           </button>
                         </div>
 
+                        {line.variantName && (
+                          <div className="mt-1">
+                            <span className="inline-flex items-center gap-1 rounded-md bg-secondary/10 px-2 py-0.5 text-[11px] font-semibold text-secondary">
+                              Variant: {line.variantName}
+                            </span>
+                          </div>
+                        )}
+
                         <div className="mt-1 flex items-center gap-2 text-xs text-muted-foreground">
-                          <span className="font-bold text-foreground">{inr(p.price)}</span>
+                          <span className="font-bold text-foreground">{inr(price)}</span>
                           <span>·</span>
                           <span>{ship > 0 ? `Delivery: ${inr(ship)}` : "Free Delivery"}</span>
                         </div>
 
-                        {p.stock < line.qty && (
+                        {stockAvailable < line.qty && (
                           <div className="mt-1 text-xs font-bold text-destructive">
-                            {p.stock === 0 ? "Out of stock, please remove" : `Only ${p.stock} available in stock`}
+                            {stockAvailable === 0 ? "Out of stock, please remove" : `Only ${stockAvailable} available in stock`}
                           </div>
                         )}
                       </div>
@@ -212,7 +221,7 @@ function Cart() {
                         <div className="flex items-center rounded-xl border bg-background text-xs">
                           <button
                             className="px-2.5 py-1 text-muted-foreground hover:bg-muted rounded-l-xl transition"
-                            onClick={() => setQty(p.id, line.qty - 1)}
+                            onClick={() => setQty(p.id, line.qty - 1, line.variantId)}
                             aria-label="Decrease quantity"
                           >
                             <Minus className="size-3" />
@@ -220,8 +229,8 @@ function Cart() {
                           <span className="w-8 text-center font-bold text-foreground">{line.qty}</span>
                           <button
                             className="px-2.5 py-1 text-muted-foreground hover:bg-muted rounded-r-xl transition disabled:opacity-30"
-                            disabled={line.qty >= p.stock}
-                            onClick={() => setQty(p.id, line.qty + 1)}
+                            disabled={line.qty >= stockAvailable}
+                            onClick={() => setQty(p.id, line.qty + 1, line.variantId)}
                             aria-label="Increase quantity"
                           >
                             <Plus className="size-3" />
@@ -229,7 +238,7 @@ function Cart() {
                         </div>
 
                         <span className="font-bold text-sm text-foreground">
-                          {inr(Number(p.price) * line.qty)}
+                          {inr(Number(price) * line.qty)}
                         </span>
                       </div>
                     </div>

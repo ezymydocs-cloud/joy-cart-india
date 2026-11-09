@@ -1,6 +1,18 @@
 import { supabase } from "@/integrations/supabase/client";
 
 export type ProductImage = { id: string; url: string; sort_order: number; storage_path?: string | null };
+
+export type ProductVariant = {
+  id: string;
+  name: string;
+  sku?: string | null;
+  price?: number | null;
+  mrp?: number | null;
+  stock: number;
+  image_url?: string | null;
+  is_active?: boolean;
+};
+
 export type Product = {
   id: string;
   name: string;
@@ -24,6 +36,7 @@ export type Product = {
   created_at: string;
   product_images: ProductImage[];
   categories?: { name: string; slug: string } | null;
+  variants?: ProductVariant[];
 };
 
 export const PRODUCT_SELECT = "*, product_images(id,url,sort_order,storage_path), categories(name,slug)";

@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 export function ProductCard({ p }: { p: Product }) {
   const { add } = useCart();
   const [justAdded, setJustAdded] = useState(false);
+  const hasVariants = Array.isArray(p.variants) && p.variants.length > 0;
   const off = discountPct(p.price, p.mrp);
   const out = p.stock <= 0;
 
@@ -41,11 +42,15 @@ export function ProductCard({ p }: { p: Product }) {
           </span>
         )}
         {/* Out of stock badge */}
-        {out && (
+        {out ? (
           <div className="absolute inset-x-0 bottom-0 bg-primary/90 py-1.5 text-center text-xs font-semibold text-primary-foreground backdrop-blur-xs">
             Currently Out of Stock
           </div>
-        )}
+        ) : hasVariants ? (
+          <div className="absolute bottom-2 right-2 rounded-lg bg-background/90 px-2 py-0.5 text-[10px] font-bold text-foreground shadow-xs backdrop-blur-xs border border-border/50">
+            {p.variants!.length} Options
+          </div>
+        ) : null}
       </Link>
 
       {/* Product Information */}
@@ -80,30 +85,43 @@ export function ProductCard({ p }: { p: Product }) {
         </div>
 
         {/* Action Button */}
-        <Button
-          size="sm"
-          className={`mt-3 w-full font-semibold transition-all ${
-            justAdded
-              ? "bg-success text-success-foreground"
-              : out
-              ? "bg-muted text-muted-foreground"
-              : "bg-primary text-primary-foreground hover:bg-secondary hover:text-secondary-foreground"
-          }`}
-          disabled={out}
-          onClick={handleAddToCart}
-        >
-          {justAdded ? (
-            <>
-              <Check className="size-4 mr-1" /> Added
-            </>
-          ) : out ? (
-            "Sold Out"
-          ) : (
-            <>
-              <ShoppingBag className="size-4 mr-1" /> Add to Cart
-            </>
-          )}
-        </Button>
+        {hasVariants ? (
+          <Button
+            asChild
+            size="sm"
+            variant="outline"
+            className="mt-3 w-full font-semibold border-secondary/50 text-secondary hover:bg-secondary hover:text-secondary-foreground"
+          >
+            <Link to="/product/$slug" params={{ slug: p.slug }}>
+              Choose Options
+            </Link>
+          </Button>
+        ) : (
+          <Button
+            size="sm"
+            className={`mt-3 w-full font-semibold transition-all ${
+              justAdded
+                ? "bg-success text-success-foreground"
+                : out
+                ? "bg-muted text-muted-foreground"
+                : "bg-primary text-primary-foreground hover:bg-secondary hover:text-secondary-foreground"
+            }`}
+            disabled={out}
+            onClick={handleAddToCart}
+          >
+            {justAdded ? (
+              <>
+                <Check className="size-4 mr-1" /> Added
+              </>
+            ) : out ? (
+              "Sold Out"
+            ) : (
+              <>
+                <ShoppingBag className="size-4 mr-1" /> Add to Cart
+              </>
+            )}
+          </Button>
+        )}
       </div>
     </div>
   );

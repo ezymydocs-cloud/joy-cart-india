@@ -184,16 +184,34 @@ function Checkout() {
           <h2 className="text-xl">Order summary</h2>
           {c.isLoading ? <div className="h-20 animate-pulse rounded bg-muted" /> : (
             <div className="space-y-2">
-              {c.rows.map(({ line, product: p }) => (
-                <div key={p.id} className="flex items-center gap-2 text-sm">
-                  <img src={mainImage(p)} alt="" className="size-10 rounded-lg object-cover" />
-                  <div className="flex-1 leading-tight">{p.name} <span className="text-muted-foreground">× {line.qty}</span>
-                    <div className="text-xs text-muted-foreground">{p.shipping_enabled && Number(p.shipping_charge) > 0 ? `Shipping ${inr(p.shipping_charge)}` : "Free shipping"}</div>
-                    {p.stock < line.qty && <div className="text-xs font-bold text-destructive">Only {p.stock} in stock</div>}
+              {c.rows.map(({ line, product: p, price, variant }) => {
+                const effectiveStock = variant ? variant.stock : p.stock;
+                return (
+                  <div key={line.variantId ? `${p.id}-${line.variantId}` : p.id} className="flex items-center gap-2 text-sm">
+                    <img src={mainImage(p)} alt="" className="size-10 rounded-lg object-cover" />
+                    <div className="flex-1 leading-tight">
+                      <div className="font-medium">
+                        {p.name}{" "}
+                        {line.variantName && (
+                          <span className="text-secondary font-semibold">({line.variantName})</span>
+                        )}{" "}
+                        <span className="text-muted-foreground">× {line.qty}</span>
+                      </div>
+                      <div className="text-xs text-muted-foreground">
+                        {p.shipping_enabled && Number(p.shipping_charge) > 0
+                          ? `Shipping ${inr(p.shipping_charge)}`
+                          : "Free shipping"}
+                      </div>
+                      {effectiveStock < line.qty && (
+                        <div className="text-xs font-bold text-destructive">
+                          Only {effectiveStock} in stock
+                        </div>
+                      )}
+                    </div>
+                    <span className="font-bold">{inr(price * line.qty)}</span>
                   </div>
-                  <span className="font-bold">{inr(Number(p.price) * line.qty)}</span>
-                </div>
-              ))}
+                );
+              })}
             </div>
           )}
           <div>

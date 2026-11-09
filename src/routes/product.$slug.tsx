@@ -17,7 +17,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
-import { PRODUCT_SELECT, sortedImages, type Product } from "@/lib/catalog";
+import { PRODUCT_SELECT, sortedImages, type Product, type ProductVariant } from "@/lib/catalog";
 import { discountPct, inr } from "@/lib/format";
 import { useCart } from "@/lib/cart";
 import { Button } from "@/components/ui/button";
@@ -43,6 +43,7 @@ function ProductPage() {
   const [active, setActive] = useState(0);
   const [zoom, setZoom] = useState(false);
   const [addedAnimation, setAddedAnimation] = useState(false);
+  const [selectedVariantId, setSelectedVariantId] = useState<string | null>(null);
 
   const { data: p, isLoading, isError, refetch } = useQuery({
     queryKey: ["product", slug],
@@ -95,10 +96,33 @@ function ProductPage() {
 
   const imgs = sortedImages(p);
   const img = imgs[active]?.url ?? "/images/teddy.jpg";
-  const off = discountPct(p.price, p.mrp);
-  const savings = p.mrp && Number(p.mrp) > Number(p.price) ? Number(p.mrp) - Number(p.price) : 0;
-  const out = p.stock <= 0;
-  const max = Math.min(99, p.stock);
+  const variants = Array.isArray(p.variants)
+    ? (p.variants as unknown as ProductVariant[]).filter((v) => v.is_active !== false)
+    : [];
+  const activeVariant =
+    variants.find((v) => v.id === selectedVariantId) || (variants.length > 0 ? variants[0] : null);
+
+  const effectivePrice =
+    activeVariant && activeVariant.price != null && Number(activeVariant.price) > 0
+      ? Number(activeVariant.price)
+      : Number(p.price);
+
+  const effectiveMrp =
+    activeVariant && activeVariant.mrp != null && Number(activeVariant.mrp) > 0
+      ? Number(activeVariant.mrp)
+      : p.mrp
+      ? Number(p.mrp)
+      : undefined;
+
+  const effectiveStock = activeVariant ? Number(activeVariant.stock ?? 0) : Number(p.stock ?? 0);
+  const out = effectiveStock <= 0;
+  const max = Math.min(99, Math.max(0, effectiveStock));
+
+  const off = discountPct(effectivePrice, effectiveMrp);
+  const savings =
+    effectiveMrp && Number(effectiveMrp) > Number(effectivePrice)
+      ? Number(effectiveMrp) - Number(effectivePrice)
+      : 0;
   const shipping = p.shipping_enabled && Number(p.shipping_charge) > 0 ? Number(p.shipping_charge) : 0;
   const packageItems = (p.in_package ?? "")
     .split(/\n|,/)
@@ -106,14 +130,16 @@ function ProductPage() {
     .filter(Boolean);
 
   const handleAddToCart = () => {
-    add(p.id, qty);
+    add(p.id, qty, activeVariant?.id, activeVariant?.name);
     setAddedAnimation(true);
-    toast.success(`Added ${qty} item(s) to Cart`, { description: p.name });
+    toast.success(`Added ${qty} item(s) to Cart`, {
+      description: activeVariant ? `${p.name} (${activeVariant.name})` : p.name,
+    });
     setTimeout(() => setAddedAnimation(false), 2000);
   };
 
   const handleBuyNow = () => {
-    add(p.id, qty);
+    add(p.id, qty, activeVariant?.id, activeVariant?.name);
     nav({ to: "/checkout" });
   };
 
@@ -175,12 +201,19 @@ function ProductPage() {
         <Link to="/" className="hover:text-foreground">Home</Link>
         <span>/</span>
         <Link to="/products" className="hover:text-foreground">Toys</Link>
-        {p.categories && (
+        {p.categories ? (
           <>
             <span>/</span>
             <Link to="/category/$slug" params={{ slug: p.categories.slug }} className="hover:text-foreground font-semibold text-secondary">
               {p.categories.name}
             </Link>
+          </>
+        ) : (
+          <>
+            <span>/</span>
+            <span className="rounded-full bg-amber-500/10 px-2 py-0.5 text-[11px] font-semibold text-amber-700 dark:text-amber-400">
+              📂 Non-Categorised
+            </span>
           </>
         )}
       </nav>
@@ -272,6 +305,45 @@ function ProductPage() {
               </p>
             )}
 
+                        {/* Variant Options Selector */}
+            {variants.length > 0 && (
+              <div className="mt-4 rounded-2xl border bg-muted/20 p-3.5">
+                <div className="flex items-center justify-between text-xs mb-2.5">
+                  <span className="font-bold text-foreground">Select Variant / Option:</span>
+                  {activeVariant && (
+                    <span className="text-xs text-muted-foreground">
+                      Selected: <strong className="text-secondary font-bold">{activeVariant.name}</strong>
+                    </span>
+                  )}
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  {variants.map((v) => {
+                    const isSelected = activeVariant?.id === v.id;
+                    const isOut = Number(v.stock ?? 0) <= 0;
+                    return (
+                      <button
+                        key={v.id}
+                        type="button"
+                        disabled={isOut}
+                        onClick={() => setSelectedVariantId(v.id)}
+                        className={`flex items-center gap-1.5 rounded-xl border px-3 py-2 text-xs font-semibold transition ${
+                          isSelected
+                            ? "border-secondary bg-secondary/15 text-secondary ring-2 ring-secondary/20 shadow-xs font-bold"
+                            : isOut
+                            ? "border-border/50 bg-muted/40 text-muted-foreground/50 line-through cursor-not-allowed"
+                            : "border-border/80 bg-background hover:border-secondary/50 text-foreground"
+                        }`}
+                      >
+                        <span>{v.name}</span>
+                        <span className="text-[11px] opacity-80">· {inr(v.price)}</span>
+                        {isOut && <span className="text-[10px] text-destructive font-medium">(Sold out)</span>}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
             {/* Pricing Section */}
             {productCustomOffer && (
               <div className="mt-5 rounded-2xl border-2 border-secondary/40 bg-gradient-to-r from-secondary/15 via-secondary/5 to-secondary/15 p-3.5 shadow-xs">
@@ -324,12 +396,12 @@ function ProductPage() {
             <div className="mt-4 rounded-2xl border bg-card p-4 shadow-xs">
               <div className="flex items-baseline gap-3">
                 <span className="font-display text-3xl font-bold text-foreground">
-                  {inr(p.price)}
+                  {inr(effectivePrice)}
                 </span>
                 {off > 0 && (
                   <>
                     <span className="text-sm text-muted-foreground line-through">
-                      MRP {inr(p.mrp)}
+                      MRP {inr(effectiveMrp)}
                     </span>
                     <span className="rounded-full bg-secondary/15 px-2.5 py-0.5 text-xs font-bold text-secondary">
                       Save {inr(savings)} ({off}% OFF)
@@ -348,13 +420,13 @@ function ProductPage() {
                 className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-bold ${
                   out
                     ? "bg-destructive/10 text-destructive"
-                    : p.stock <= 5
+                    : effectiveStock <= 5
                     ? "bg-amber-500/10 text-amber-600"
                     : "bg-success/10 text-success"
                 }`}
               >
                 <span className="size-2 rounded-full bg-current" />
-                {out ? "Out of Stock" : p.stock <= 5 ? `Only ${p.stock} units left in stock!` : "In Stock · Ready to Ship"}
+                {out ? "Out of Stock" : effectiveStock <= 5 ? `Only ${effectiveStock} units left in stock!` : "In Stock · Ready to Ship"}
               </span>
 
               <span className="inline-flex items-center gap-1 text-xs text-muted-foreground font-medium">

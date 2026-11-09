@@ -555,6 +555,7 @@ couriers: {
           stock: number
           tags: string[]
           updated_at: string
+          variants: Json
         }
         Insert: {
           age_group?: string | null
@@ -578,6 +579,7 @@ couriers: {
           stock?: number
           tags?: string[]
           updated_at?: string
+          variants?: Json
         }
         Update: {
           age_group?: string | null
@@ -601,6 +603,7 @@ couriers: {
           stock?: number
           tags?: string[]
           updated_at?: string
+          variants?: Json
         }
         Relationships: [
           {
