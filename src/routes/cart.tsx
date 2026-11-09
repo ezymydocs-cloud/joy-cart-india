@@ -166,8 +166,11 @@ function Cart() {
                 const ship =
                   p.shipping_enabled && Number(p.shipping_charge) > 0 ? Number(p.shipping_charge) : 0;
                 const stockAvailable = variant ? variant.stock : p.stock;
+                const isFree = !!line.isFreeBogo;
+                const itemKey = `${p.id}-${line.variantId || 'novar'}-${isFree ? 'free' : 'paid'}`;
+
                 return (
-                  <div key={line.variantId ? `${p.id}-${line.variantId}` : p.id} className="flex gap-4 py-4 first:pt-2 last:pb-2">
+                  <div key={itemKey} className="flex gap-4 py-4 first:pt-2 last:pb-2">
                     <Link
                       to="/product/$slug"
                       params={{ slug: p.slug }}
@@ -187,13 +190,27 @@ function Cart() {
                             {p.name}
                           </Link>
                           <button
-                            onClick={() => remove(p.id, line.variantId)}
+                            onClick={() => remove(p.id, line.variantId, isFree)}
                             aria-label="Remove item"
                             className="text-muted-foreground transition hover:text-destructive p-1"
                           >
                             <Trash2 className="size-4" />
                           </button>
                         </div>
+
+                        {/* BOGO Free Item Pill */}
+                        {isFree && (
+                          <div className="mt-1 space-y-0.5">
+                            <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500/15 border border-emerald-500/30 px-2.5 py-0.5 text-[11px] font-bold text-emerald-600 dark:text-emerald-400">
+                              🎁 FREE BOGO GIFT {line.bogoParentName ? `(With ${line.bogoParentName})` : ''}
+                            </span>
+                            {line.bogoLimit && (
+                              <p className="text-[10px] text-muted-foreground">
+                                Allocated Limit: {inr(line.bogoLimit)} (50% value). Remaining balance cannot be carried forward.
+                              </p>
+                            )}
+                          </div>
+                        )}
 
                         {line.variantName && (
                           <div className="mt-1">
@@ -204,7 +221,13 @@ function Cart() {
                         )}
 
                         <div className="mt-1 flex items-center gap-2 text-xs text-muted-foreground">
-                          <span className="font-bold text-foreground">{inr(price)}</span>
+                          {isFree ? (
+                            <span className="font-extrabold text-emerald-600 dark:text-emerald-400">
+                              FREE (₹0) <span className="line-through text-muted-foreground font-normal ml-1">{inr(p.price)}</span>
+                            </span>
+                          ) : (
+                            <span className="font-bold text-foreground">{inr(price)}</span>
+                          )}
                           <span>·</span>
                           <span>{ship > 0 ? `Delivery: ${inr(ship)}` : "Free Delivery"}</span>
                         </div>
@@ -218,27 +241,37 @@ function Cart() {
 
                       {/* Line Quantity & Total Price */}
                       <div className="mt-3 flex items-center justify-between">
-                        <div className="flex items-center rounded-xl border bg-background text-xs">
-                          <button
-                            className="px-2.5 py-1 text-muted-foreground hover:bg-muted rounded-l-xl transition"
-                            onClick={() => setQty(p.id, line.qty - 1, line.variantId)}
-                            aria-label="Decrease quantity"
-                          >
-                            <Minus className="size-3" />
-                          </button>
-                          <span className="w-8 text-center font-bold text-foreground">{line.qty}</span>
-                          <button
-                            className="px-2.5 py-1 text-muted-foreground hover:bg-muted rounded-r-xl transition disabled:opacity-30"
-                            disabled={line.qty >= stockAvailable}
-                            onClick={() => setQty(p.id, line.qty + 1, line.variantId)}
-                            aria-label="Increase quantity"
-                          >
-                            <Plus className="size-3" />
-                          </button>
-                        </div>
+                        {isFree ? (
+                          <div className="inline-flex items-center rounded-lg bg-emerald-500/10 px-2.5 py-1 text-xs font-bold text-emerald-700 dark:text-emerald-300">
+                            1 Free Unit (Fixed)
+                          </div>
+                        ) : (
+                          <div className="flex items-center rounded-xl border bg-background text-xs">
+                            <button
+                              className="px-2.5 py-1 text-muted-foreground hover:bg-muted rounded-l-xl transition"
+                              onClick={() => setQty(p.id, line.qty - 1, line.variantId, isFree)}
+                              aria-label="Decrease quantity"
+                            >
+                              <Minus className="size-3" />
+                            </button>
+                            <span className="w-8 text-center font-bold text-foreground">{line.qty}</span>
+                            <button
+                              className="px-2.5 py-1 text-muted-foreground hover:bg-muted rounded-r-xl transition disabled:opacity-30"
+                              disabled={line.qty >= stockAvailable}
+                              onClick={() => setQty(p.id, line.qty + 1, line.variantId, isFree)}
+                              aria-label="Increase quantity"
+                            >
+                              <Plus className="size-3" />
+                            </button>
+                          </div>
+                        )}
 
                         <span className="font-bold text-sm text-foreground">
-                          {inr(Number(price) * line.qty)}
+                          {isFree ? (
+                            <span className="text-emerald-600 dark:text-emerald-400 font-extrabold">FREE</span>
+                          ) : (
+                            inr(Number(price) * line.qty)
+                          )}
                         </span>
                       </div>
                     </div>

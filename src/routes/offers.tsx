@@ -61,19 +61,22 @@ type PublicOffer = {
   is_active: boolean;
   bogo_buy_qty?: number;
   bogo_get_qty?: number;
+  bogo_mode?: string;
+  bogo_choice_max_percent?: number;
   product_prices?: OfferProductPrice[];
 };
 
 const FALLBACK_OFFERS: PublicOffer[] = [
   {
     id: "f-bogo",
-    title: "Buy 1 Get 1 FREE Mega Toy Bonanza",
-    description: "Buy any eligible toy from our festive selection and get another toy completely FREE!",
-    badge: "BUY 1 GET 1 FREE",
+    title: "Buy 1 Get 1 with Option Mega Bonanza",
+    description: "Buy any toy and get a 2nd unit of the same toy FREE, or choose ANY different toy priced up to 50% for FREE!",
+    badge: "BUY 1 GET 1 WITH OPTION",
     discount_type: "bogo",
     discount_value: 0,
     bogo_buy_qty: 1,
     bogo_get_qty: 1,
+    bogo_mode: "with_option",
     coupon_code: "BOGOFREE",
     min_order_value: 0,
     start_date: new Date().toISOString(),
@@ -313,7 +316,9 @@ function OffersPage() {
                   )}
                   <span className="text-xs font-bold text-foreground">
                     {isBogo
-                      ? `BUY ${o.bogo_buy_qty || 1} GET ${o.bogo_get_qty || 1} FREE`
+                      ? o.bogo_mode === "with_option"
+                        ? "BUY 1 GET 1 WITH OPTION (SAME OR 50% TOY FREE)"
+                        : `BUY ${o.bogo_buy_qty || 1} GET ${o.bogo_get_qty || 1} FREE`
                       : o.discount_type === "percentage"
                       ? `${o.discount_value}% INSTANT DISCOUNT`
                       : o.discount_type === "flat"

@@ -84,6 +84,8 @@ export type Offer = {
   is_active: boolean;
   bogo_buy_qty?: number;
   bogo_get_qty?: number;
+  bogo_mode?: "with_option" | "same_only" | string;
+  bogo_choice_max_percent?: number;
   pricing_type?: "manual" | "percentage" | string;
   pricing_percentage?: number;
   pricing_direction?: "decrease" | "increase" | string;
@@ -108,6 +110,8 @@ const DEFAULT_OFFER: Offer = {
   is_active: true,
   bogo_buy_qty: 1,
   bogo_get_qty: 1,
+  bogo_mode: "with_option",
+  bogo_choice_max_percent: 50,
   pricing_type: "manual",
   pricing_percentage: 15,
   pricing_direction: "decrease",
@@ -144,6 +148,8 @@ CREATE TABLE IF NOT EXISTS public.offers (
 ALTER TABLE public.offers 
   ADD COLUMN IF NOT EXISTS bogo_buy_qty integer DEFAULT 1,
   ADD COLUMN IF NOT EXISTS bogo_get_qty integer DEFAULT 1,
+  ADD COLUMN IF NOT EXISTS bogo_mode text DEFAULT 'with_option',
+  ADD COLUMN IF NOT EXISTS bogo_choice_max_percent numeric DEFAULT 50,
   ADD COLUMN IF NOT EXISTS pricing_type text DEFAULT 'manual',
   ADD COLUMN IF NOT EXISTS pricing_percentage numeric DEFAULT 0,
   ADD COLUMN IF NOT EXISTS pricing_direction text DEFAULT 'decrease',
@@ -654,15 +660,70 @@ function OffersAdmin() {
                   </div>
                 </div>
 
+                {/* BOGO Customer Choice Mode */}
+                <div className="mt-4 pt-3 border-t border-amber-500/20">
+                  <Label className="text-xs font-bold text-foreground">BOGO Customer Choice Mode</Label>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-1.5">
+                    <button
+                      type="button"
+                      onClick={() => setEdit({ ...edit, bogo_mode: "with_option", badge: "BUY 1 GET 1 WITH OPTION" })}
+                      className={`rounded-xl border p-3 text-left transition ${
+                        (edit.bogo_mode ?? "with_option") === "with_option"
+                          ? "border-amber-500 bg-amber-500/15 text-foreground ring-1 ring-amber-500/30"
+                          : "border-border/80 bg-background text-muted-foreground hover:border-amber-500/40"
+                      }`}
+                    >
+                      <div className="font-bold text-xs flex items-center gap-1.5 text-foreground">
+                        <span>🎁 Buy 1 Get 1 with Option</span>
+                      </div>
+                      <p className="text-[11px] text-muted-foreground mt-1 leading-snug">
+                        Customer choice modal: <b>Option A:</b> 2nd unit of same item FREE, OR <b>Option B:</b> Choose ANY store toy &le; 50% price for FREE!
+                      </p>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => setEdit({ ...edit, bogo_mode: "same_only", badge: "BUY 1 GET 1 FREE" })}
+                      className={`rounded-xl border p-3 text-left transition ${
+                        edit.bogo_mode === "same_only"
+                          ? "border-amber-500 bg-amber-500/15 text-foreground ring-1 ring-amber-500/30"
+                          : "border-border/80 bg-background text-muted-foreground hover:border-amber-500/40"
+                      }`}
+                    >
+                      <div className="font-bold text-xs flex items-center gap-1.5 text-foreground">
+                        <span>📦 Same Product Only</span>
+                      </div>
+                      <p className="text-[11px] text-muted-foreground mt-1 leading-snug">
+                        Customer automatically receives a 2nd unit of the same purchased item for FREE.
+                      </p>
+                    </button>
+                  </div>
+
+                  {(edit.bogo_mode ?? "with_option") === "with_option" && (
+                    <div className="mt-3 rounded-xl border border-amber-500/25 bg-background/70 p-2.5 text-xs text-muted-foreground">
+                      <p>
+                        💡 <b>Option B Rules:</b> Free toy selection page opens displaying store toys priced at <b>50% or less</b> of the purchased item. If customer picks an item under the allocated limit (e.g. ₹200 on ₹250 limit), remaining balance cannot be carried forward to future orders.
+                      </p>
+                    </div>
+                  )}
+                </div>
+
                 {/* Quick Presets for BOGO */}
                 <div className="mt-3 flex flex-wrap items-center gap-2 pt-2 border-t border-amber-500/20 text-xs">
                   <span className="text-muted-foreground text-[11px] font-semibold">Quick Presets:</span>
                   <button
                     type="button"
-                    onClick={() => setEdit({ ...edit, bogo_buy_qty: 1, bogo_get_qty: 1, badge: "BUY 1 GET 1 FREE" })}
+                    onClick={() => setEdit({ ...edit, bogo_buy_qty: 1, bogo_get_qty: 1, bogo_mode: "with_option", badge: "BUY 1 GET 1 WITH OPTION" })}
+                    className="rounded-lg bg-amber-500/20 text-amber-700 dark:text-amber-300 px-2.5 py-1 text-[11px] font-bold border border-amber-500/40 hover:bg-amber-500/30"
+                  >
+                    🎁 Buy 1 Get 1 with Option (50% Choice)
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setEdit({ ...edit, bogo_buy_qty: 1, bogo_get_qty: 1, bogo_mode: "same_only", badge: "BUY 1 GET 1 FREE" })}
                     className="rounded-lg bg-card px-2.5 py-1 text-[11px] font-bold border hover:border-amber-500"
                   >
-                    Buy 1 Get 1 FREE
+                    Buy 1 Get 1 FREE (Same)
                   </button>
                   <button
                     type="button"
@@ -1246,7 +1307,9 @@ function OffersAdmin() {
                       <span className="text-muted-foreground">Type:</span>
                       <span className="font-bold text-foreground">
                         {isBogo
-                          ? `Buy ${o.bogo_buy_qty || 1} Get ${o.bogo_get_qty || 1} Free`
+                          ? o.bogo_mode === "with_option"
+                            ? "Buy 1 Get 1 with Option (Same or 50% Choice)"
+                            : `Buy ${o.bogo_buy_qty || 1} Get ${o.bogo_get_qty || 1} Free`
                           : o.discount_type === "percentage"
                           ? `${o.discount_value}% OFF`
                           : o.discount_type === "flat"

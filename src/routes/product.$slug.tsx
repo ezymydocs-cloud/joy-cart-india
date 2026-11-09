@@ -44,6 +44,7 @@ function ProductPage() {
   const [zoom, setZoom] = useState(false);
   const [addedAnimation, setAddedAnimation] = useState(false);
   const [selectedVariantId, setSelectedVariantId] = useState<string | null>(null);
+  const [bogoModalOpen, setBogoModalOpen] = useState(false);
 
   const { data: p, isLoading, isError, refetch } = useQuery({
     queryKey: ["product", slug],
@@ -130,6 +131,10 @@ function ProductPage() {
     .filter(Boolean);
 
   const handleAddToCart = () => {
+    if (activeBogo && qty === 1) {
+      setBogoModalOpen(true);
+      return;
+    }
     add(p.id, qty, activeVariant?.id, activeVariant?.name);
     setAddedAnimation(true);
     toast.success(`Added ${qty} item(s) to Cart`, {
@@ -139,6 +144,10 @@ function ProductPage() {
   };
 
   const handleBuyNow = () => {
+    if (activeBogo && qty === 1) {
+      setBogoModalOpen(true);
+      return;
+    }
     add(p.id, qty, activeVariant?.id, activeVariant?.name);
     nav({ to: "/checkout" });
   };
@@ -375,21 +384,32 @@ function ProductPage() {
             )}
 
             {activeBogo && !productCustomOffer && (
-              <div className="mt-5 flex items-center justify-between gap-3 rounded-2xl border border-amber-500/30 bg-gradient-to-r from-amber-500/15 via-orange-500/10 to-amber-500/15 p-3 text-xs shadow-xs">
-                <div className="flex items-center gap-2">
-                  <Gift className="size-4 text-amber-600 shrink-0" />
-                  <div>
-                    <span className="font-bold text-foreground">
-                      Buy {activeBogo.bogo_buy_qty || 1} Get {activeBogo.bogo_get_qty || 1} FREE!
-                    </span>
-                    <p className="text-[11px] text-muted-foreground">
-                      Add to cart with promo code <b>{activeBogo.coupon_code || "BOGO"}</b>
-                    </p>
+              <div className="mt-5 rounded-2xl border-2 border-amber-500/40 bg-gradient-to-r from-amber-500/15 via-orange-500/10 to-amber-500/15 p-4 text-xs shadow-xs">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                  <div className="flex items-start gap-2.5">
+                    <Gift className="size-5 text-amber-600 shrink-0 mt-0.5" />
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <span className="font-extrabold text-foreground text-sm">
+                          Buy 1 Get 1 with Option! 🎁
+                        </span>
+                        <span className="rounded-full bg-amber-500/20 px-2 py-0.5 text-[10px] font-bold text-amber-700 dark:text-amber-300">
+                          FREE GIFT
+                        </span>
+                      </div>
+                      <p className="text-[11px] text-muted-foreground mt-1">
+                        Choose 2nd unit of this toy <b>FREE</b>, OR select <b>ANY store toy up to {inr(Math.floor(effectivePrice * 0.5))}</b> for FREE!
+                      </p>
+                    </div>
                   </div>
+                  <Button
+                    size="sm"
+                    onClick={() => setBogoModalOpen(true)}
+                    className="shrink-0 bg-gradient-to-r from-amber-500 to-orange-500 text-white font-bold hover:from-amber-600 hover:to-orange-600 shadow-xs"
+                  >
+                    Claim BOGO Offer →
+                  </Button>
                 </div>
-                <Link to="/offers" className="font-bold text-secondary hover:underline shrink-0 text-xs">
-                  See Offers →
-                </Link>
               </div>
             )}
 
@@ -551,6 +571,107 @@ function ProductPage() {
           <img src={img} alt={p.name} className="w-full rounded-2xl object-contain max-h-[80vh]" />
         </DialogContent>
       </Dialog>
-    </div>
+    
+      {/* BOGO with Option Selection Modal */}
+      <Dialog open={bogoModalOpen} onOpenChange={setBogoModalOpen}>
+        <DialogContent className="max-w-lg rounded-3xl p-6 sm:p-7">
+          <DialogTitle className="flex items-center gap-2 font-display text-xl font-bold">
+            <Gift className="size-6 text-amber-600" /> Choose Your BOGO Free Gift
+          </DialogTitle>
+          <p className="text-xs text-muted-foreground mt-1">
+            You are eligible for a <strong>FREE Toy</strong> with your purchase of <strong>{p.name}</strong> ({inr(effectivePrice)})! Please choose how you want your free item:
+          </p>
+
+          <div className="mt-5 space-y-3.5">
+            {/* Option A: Same Product */}
+            <div className="rounded-2xl border-2 border-border/80 bg-card p-4 transition hover:border-secondary hover:shadow-xs">
+              <div className="flex items-start justify-between gap-3">
+                <div className="space-y-1">
+                  <div className="flex items-center gap-2">
+                    <span className="rounded-full bg-secondary/15 px-2.5 py-0.5 text-[11px] font-bold text-secondary uppercase">
+                      Option A
+                    </span>
+                    <h3 className="font-bold text-sm text-foreground">Same Product (2x {p.name})</h3>
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    Get a second unit of <strong>{p.name}</strong> completely FREE!
+                  </p>
+                  <div className="text-xs font-bold text-emerald-600 dark:text-emerald-400">
+                    2nd Toy Price: <span className="line-through text-muted-foreground">{inr(effectivePrice)}</span> FREE (₹0)
+                  </div>
+                </div>
+                <Button
+                  onClick={() => {
+                    setBogoModalOpen(false);
+                    add(p.id, 2, activeVariant?.id, activeVariant?.name);
+                    toast.success("BOGO Option A Applied!", {
+                      description: `Added 2x ${p.name} to cart. 2nd unit is 100% FREE!`,
+                    });
+                    nav({ to: "/cart" });
+                  }}
+                  className="shrink-0 bg-primary font-bold text-xs"
+                >
+                  Choose Same Toy
+                </Button>
+              </div>
+            </div>
+
+            {/* Option B: Different Product */}
+            <div className="rounded-2xl border-2 border-amber-500/40 bg-gradient-to-br from-amber-500/10 via-card to-orange-500/5 p-4 transition hover:border-amber-500 hover:shadow-xs">
+              <div className="flex items-start justify-between gap-3">
+                <div className="space-y-1">
+                  <div className="flex items-center gap-2">
+                    <span className="rounded-full bg-amber-500/20 border border-amber-500/30 px-2.5 py-0.5 text-[11px] font-bold text-amber-700 dark:text-amber-300 uppercase">
+                      Option B
+                    </span>
+                    <h3 className="font-bold text-sm text-foreground">Different Product (Pick Any Free Toy)</h3>
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    Pick ANY available store toy priced at half (50%) or less: <strong>Up to {inr(Math.floor(effectivePrice * 0.5))}</strong> for FREE!
+                  </p>
+                  <div className="rounded-xl border border-amber-500/20 bg-background/80 p-2 text-[11px] text-amber-900 dark:text-amber-200">
+                    ⚠️ <em>Note: If you select a toy under {inr(Math.floor(effectivePrice * 0.5))} (e.g. ₹200), the remaining balance cannot be carried forward.</em>
+                  </div>
+                </div>
+                <Button
+                  onClick={() => {
+                    setBogoModalOpen(false);
+                    nav({
+                      to: "/bogo-select",
+                      search: {
+                        parent: p.id,
+                        variantId: activeVariant?.id,
+                        variantName: activeVariant?.name,
+                      },
+                    });
+                  }}
+                  className="shrink-0 bg-gradient-to-r from-amber-500 to-orange-500 text-white font-bold text-xs hover:from-amber-600 hover:to-orange-600"
+                >
+                  Select Different Toy →
+                </Button>
+              </div>
+            </div>
+          </div>
+
+          <div className="mt-4 flex justify-between items-center">
+            <span className="text-[11px] text-muted-foreground">BOGO offer applies automatically</span>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => {
+                setBogoModalOpen(false);
+                add(p.id, qty, activeVariant?.id, activeVariant?.name);
+                toast.success(`Added ${qty} item(s) to Cart`, {
+                  description: activeVariant ? `${p.name} (${activeVariant.name})` : p.name,
+                });
+              }}
+              className="text-xs text-muted-foreground"
+            >
+              No thanks, just add 1 item
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+</div>
   );
 }

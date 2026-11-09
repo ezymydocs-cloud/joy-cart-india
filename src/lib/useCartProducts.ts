@@ -40,6 +40,10 @@ export function useCartProducts() {
         }
       }
 
+      if (l.isFreeBogo) {
+        price = 0;
+      }
+
       return { line: l, product, price, variant };
     })
     .filter((r): r is CartRow => r !== null);

@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as AuthRouteImport } from './routes/auth'
+import { Route as BogoSelectRouteImport } from './routes/bogo-select'
 import { Route as CartRouteImport } from './routes/cart'
 import { Route as CategoriesRouteImport } from './routes/categories'
 import { Route as OffersRouteImport } from './routes/offers'
@@ -54,6 +55,11 @@ const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
 const AuthRoute = AuthRouteImport.update({
   id: '/auth',
   path: '/auth',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const BogoSelectRoute = BogoSelectRouteImport.update({
+  id: '/bogo-select',
+  path: '/bogo-select',
   getParentRoute: () => rootRouteImport,
 } as any)
 const CartRoute = CartRouteImport.update({
@@ -218,6 +224,7 @@ const ApiPublicImgBucketSplatRoute = ApiPublicImgBucketSplatRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
+  '/bogo-select': typeof BogoSelectRoute
   '/cart': typeof CartRoute
   '/categories': typeof CategoriesRoute
   '/offers': typeof OffersRoute
@@ -251,6 +258,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
+  '/bogo-select': typeof BogoSelectRoute
   '/cart': typeof CartRoute
   '/categories': typeof CategoriesRoute
   '/offers': typeof OffersRoute
@@ -285,6 +293,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/auth': typeof AuthRoute
+  '/bogo-select': typeof BogoSelectRoute
   '/cart': typeof CartRoute
   '/categories': typeof CategoriesRoute
   '/offers': typeof OffersRoute
@@ -320,6 +329,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/auth'
+    | '/bogo-select'
     | '/cart'
     | '/categories'
     | '/offers'
@@ -353,6 +363,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/auth'
+    | '/bogo-select'
     | '/cart'
     | '/categories'
     | '/offers'
@@ -386,6 +397,7 @@ export interface FileRouteTypes {
     | '/'
     | '/_authenticated'
     | '/auth'
+    | '/bogo-select'
     | '/cart'
     | '/categories'
     | '/offers'
@@ -421,6 +433,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   AuthRoute: typeof AuthRoute
+  BogoSelectRoute: typeof BogoSelectRoute
   CartRoute: typeof CartRoute
   CategoriesRoute: typeof CategoriesRoute
   OffersRoute: typeof OffersRoute
@@ -455,6 +468,13 @@ declare module '@tanstack/react-router' {
       path: '/auth'
       fullPath: '/auth'
       preLoaderRoute: typeof AuthRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/bogo-select': {
+      id: '/bogo-select'
+      path: '/bogo-select'
+      fullPath: '/bogo-select'
+      preLoaderRoute: typeof BogoSelectRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/cart': {
@@ -721,6 +741,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   AuthRoute: AuthRoute,
+  BogoSelectRoute: BogoSelectRoute,
   CartRoute: CartRoute,
   CategoriesRoute: CategoriesRoute,
   OffersRoute: OffersRoute,

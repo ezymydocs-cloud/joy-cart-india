@@ -96,7 +96,20 @@ function Checkout() {
     setBusy(true);
     try {
       const res = await place({
-        data: { items: c.rows.map((r) => ({ product_id: r.product.id, quantity: r.line.qty })), addressId: addrId, paymentMethod: method, idempotencyKey: idem.current, couponCode: coupon?.code },
+        data: {
+          items: c.rows.map((r) => ({
+            product_id: r.product.id,
+            quantity: r.line.qty,
+            variant_id: r.line.variantId,
+            variant_name: r.line.variantName,
+            is_free: r.line.isFreeBogo || false,
+            bogo_parent_id: r.line.bogoParentId,
+          })),
+          addressId: addrId,
+          paymentMethod: method,
+          idempotencyKey: idem.current,
+          couponCode: coupon?.code,
+        },
       });
 
       if (method === "razorpay") {
@@ -192,9 +205,11 @@ function Checkout() {
                     <div className="flex-1 leading-tight">
                       <div className="font-medium">
                         {p.name}{" "}
-                        {line.variantName && (
+                        {line.isFreeBogo ? (
+                          <span className="text-emerald-600 font-bold">[FREE BOGO GIFT]</span>
+                        ) : line.variantName ? (
                           <span className="text-secondary font-semibold">({line.variantName})</span>
-                        )}{" "}
+                        ) : null}{" "}
                         <span className="text-muted-foreground">× {line.qty}</span>
                       </div>
                       <div className="text-xs text-muted-foreground">
@@ -208,7 +223,13 @@ function Checkout() {
                         </div>
                       )}
                     </div>
-                    <span className="font-bold">{inr(price * line.qty)}</span>
+                    <span className="font-bold">
+                      {line.isFreeBogo ? (
+                        <span className="text-emerald-600 font-bold">FREE</span>
+                      ) : (
+                        inr(price * line.qty)
+                      )}
+                    </span>
                   </div>
                 );
               })}

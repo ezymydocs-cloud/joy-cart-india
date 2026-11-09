@@ -65,7 +65,19 @@ export const placeOrder = createServerFn({ method: "POST" })
   .inputValidator((d) =>
     z
       .object({
-        items: z.array(z.object({ product_id: z.string().uuid(), quantity: z.number().int().min(1).max(99) })).min(1).max(50),
+        items: z
+          .array(
+            z.object({
+              product_id: z.string().uuid(),
+              quantity: z.number().int().min(1).max(99),
+              variant_id: z.string().optional(),
+              variant_name: z.string().optional(),
+              is_free: z.boolean().optional(),
+              bogo_parent_id: z.string().optional(),
+            })
+          )
+          .min(1)
+          .max(50),
         addressId: z.string().uuid(),
         paymentMethod: z.enum(["cod", "razorpay"]),
         idempotencyKey: z.string().min(8).max(100),
