@@ -18,12 +18,10 @@ import { Route as CategoriesRouteImport } from './routes/categories'
 import { Route as OffersRouteImport } from './routes/offers'
 import { Route as ProductsRouteImport } from './routes/products'
 import { Route as ResetPasswordRouteImport } from './routes/reset-password'
-import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as AuthenticatedAccountRouteImport } from './routes/_authenticated/account'
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
 import { Route as AuthenticatedCheckoutRouteImport } from './routes/_authenticated/checkout'
 import { Route as ApiCreateOrderRouteImport } from './routes/api/create-order'
-import { Route as ApiSitemapRouteImport } from './routes/api/sitemap'
 import { Route as ApiVerifyPaymentRouteImport } from './routes/api/verify-payment'
 import { Route as CategorySlugRouteImport } from './routes/category.$slug'
 import { Route as PoliciesSlugRouteImport } from './routes/policies.$slug'
@@ -91,11 +89,6 @@ const ResetPasswordRoute = ResetPasswordRouteImport.update({
   path: '/reset-password',
   getParentRoute: () => rootRouteImport,
 } as any)
-const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
-  id: '/sitemap.xml',
-  path: '/sitemap.xml',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const AuthenticatedAccountRoute = AuthenticatedAccountRouteImport.update({
   id: '/account',
   path: '/account',
@@ -114,11 +107,6 @@ const AuthenticatedCheckoutRoute = AuthenticatedCheckoutRouteImport.update({
 const ApiCreateOrderRoute = ApiCreateOrderRouteImport.update({
   id: '/api/create-order',
   path: '/api/create-order',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ApiSitemapRoute = ApiSitemapRouteImport.update({
-  id: '/api/sitemap',
-  path: '/api/sitemap',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiVerifyPaymentRoute = ApiVerifyPaymentRouteImport.update({
@@ -255,12 +243,10 @@ export interface FileRoutesByFullPath {
   '/offers': typeof OffersRoute
   '/products': typeof ProductsRoute
   '/reset-password': typeof ResetPasswordRoute
-  '/sitemap.xml': typeof SitemapDotxmlRoute
   '/account': typeof AuthenticatedAccountRoute
   '/admin': typeof AuthenticatedAdminRouteWithChildren
   '/checkout': typeof AuthenticatedCheckoutRoute
   '/api/create-order': typeof ApiCreateOrderRoute
-  '/api/sitemap': typeof ApiSitemapRoute
   '/api/verify-payment': typeof ApiVerifyPaymentRoute
   '/category/$slug': typeof CategorySlugRoute
   '/policies/$slug': typeof PoliciesSlugRoute
@@ -293,11 +279,9 @@ export interface FileRoutesByTo {
   '/offers': typeof OffersRoute
   '/products': typeof ProductsRoute
   '/reset-password': typeof ResetPasswordRoute
-  '/sitemap.xml': typeof SitemapDotxmlRoute
   '/account': typeof AuthenticatedAccountRoute
   '/checkout': typeof AuthenticatedCheckoutRoute
   '/api/create-order': typeof ApiCreateOrderRoute
-  '/api/sitemap': typeof ApiSitemapRoute
   '/api/verify-payment': typeof ApiVerifyPaymentRoute
   '/category/$slug': typeof CategorySlugRoute
   '/policies/$slug': typeof PoliciesSlugRoute
@@ -332,12 +316,10 @@ export interface FileRoutesById {
   '/offers': typeof OffersRoute
   '/products': typeof ProductsRoute
   '/reset-password': typeof ResetPasswordRoute
-  '/sitemap.xml': typeof SitemapDotxmlRoute
   '/_authenticated/account': typeof AuthenticatedAccountRoute
   '/_authenticated/admin': typeof AuthenticatedAdminRouteWithChildren
   '/_authenticated/checkout': typeof AuthenticatedCheckoutRoute
   '/api/create-order': typeof ApiCreateOrderRoute
-  '/api/sitemap': typeof ApiSitemapRoute
   '/api/verify-payment': typeof ApiVerifyPaymentRoute
   '/category/$slug': typeof CategorySlugRoute
   '/policies/$slug': typeof PoliciesSlugRoute
@@ -372,12 +354,10 @@ export interface FileRouteTypes {
     | '/offers'
     | '/products'
     | '/reset-password'
-    | '/sitemap.xml'
     | '/account'
     | '/admin'
     | '/checkout'
     | '/api/create-order'
-    | '/api/sitemap'
     | '/api/verify-payment'
     | '/category/$slug'
     | '/policies/$slug'
@@ -410,11 +390,9 @@ export interface FileRouteTypes {
     | '/offers'
     | '/products'
     | '/reset-password'
-    | '/sitemap.xml'
     | '/account'
     | '/checkout'
     | '/api/create-order'
-    | '/api/sitemap'
     | '/api/verify-payment'
     | '/category/$slug'
     | '/policies/$slug'
@@ -448,12 +426,10 @@ export interface FileRouteTypes {
     | '/offers'
     | '/products'
     | '/reset-password'
-    | '/sitemap.xml'
     | '/_authenticated/account'
     | '/_authenticated/admin'
     | '/_authenticated/checkout'
     | '/api/create-order'
-    | '/api/sitemap'
     | '/api/verify-payment'
     | '/category/$slug'
     | '/policies/$slug'
@@ -488,9 +464,7 @@ export interface RootRouteChildren {
   OffersRoute: typeof OffersRoute
   ProductsRoute: typeof ProductsRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
-  SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   ApiCreateOrderRoute: typeof ApiCreateOrderRoute
-  ApiSitemapRoute: typeof ApiSitemapRoute
   ApiVerifyPaymentRoute: typeof ApiVerifyPaymentRoute
   CategorySlugRoute: typeof CategorySlugRoute
   PoliciesSlugRoute: typeof PoliciesSlugRoute
@@ -564,13 +538,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ResetPasswordRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/sitemap.xml': {
-      id: '/sitemap.xml'
-      path: '/sitemap.xml'
-      fullPath: '/sitemap.xml'
-      preLoaderRoute: typeof SitemapDotxmlRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/_authenticated/account': {
       id: '/_authenticated/account'
       path: '/account'
@@ -597,13 +564,6 @@ declare module '@tanstack/react-router' {
       path: '/api/create-order'
       fullPath: '/api/create-order'
       preLoaderRoute: typeof ApiCreateOrderRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/sitemap': {
-      id: '/api/sitemap'
-      path: '/api/sitemap'
-      fullPath: '/api/sitemap'
-      preLoaderRoute: typeof ApiSitemapRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/verify-payment': {
@@ -829,9 +789,7 @@ const rootRouteChildren: RootRouteChildren = {
   OffersRoute: OffersRoute,
   ProductsRoute: ProductsRoute,
   ResetPasswordRoute: ResetPasswordRoute,
-  SitemapDotxmlRoute: SitemapDotxmlRoute,
   ApiCreateOrderRoute: ApiCreateOrderRoute,
-  ApiSitemapRoute: ApiSitemapRoute,
   ApiVerifyPaymentRoute: ApiVerifyPaymentRoute,
   CategorySlugRoute: CategorySlugRoute,
   PoliciesSlugRoute: PoliciesSlugRoute,
