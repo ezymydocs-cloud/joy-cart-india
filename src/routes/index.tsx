@@ -48,7 +48,7 @@ const DEFAULT_BANNERS = [
   {
     id: "promo-1",
     title: "Mega Toy Carnival",
-    subtitle: "Up to 40% OFF on Best-Selling Toys · Extra 10% with code TOYZ10",
+    subtitle: "Explore our premium collection of certified child-safe trending toys delivered Pan-India",
     desktop_image_url: "/images/banner.jpg",
     mobile_image_url: "/images/banner.jpg",
     link_url: "/products",

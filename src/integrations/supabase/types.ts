@@ -655,6 +655,14 @@ couriers: {
           store_name: string
           updated_at: string
           whatsapp: string
+          flash_deals_enabled?: boolean | null
+          flash_deals_title?: string | null
+          flash_deals_subtitle?: string | null
+          flash_deals_end_time?: string | null
+          flash_deals_product_ids?: Json | null
+          flash_deals_custom_discounts?: Json | null
+          announcement_bar_enabled?: boolean | null
+          announcement_messages?: Json | null
         }
         Insert: {
           admin_notification_email?: string
@@ -668,6 +676,14 @@ couriers: {
           store_name?: string
           updated_at?: string
           whatsapp?: string
+          flash_deals_enabled?: boolean | null
+          flash_deals_title?: string | null
+          flash_deals_subtitle?: string | null
+          flash_deals_end_time?: string | null
+          flash_deals_product_ids?: Json | null
+          flash_deals_custom_discounts?: Json | null
+          announcement_bar_enabled?: boolean | null
+          announcement_messages?: Json | null
         }
         Update: {
           admin_notification_email?: string
@@ -681,6 +697,14 @@ couriers: {
           store_name?: string
           updated_at?: string
           whatsapp?: string
+          flash_deals_enabled?: boolean | null
+          flash_deals_title?: string | null
+          flash_deals_subtitle?: string | null
+          flash_deals_end_time?: string | null
+          flash_deals_product_ids?: Json | null
+          flash_deals_custom_discounts?: Json | null
+          announcement_bar_enabled?: boolean | null
+          announcement_messages?: Json | null
         }
         Relationships: []
       }

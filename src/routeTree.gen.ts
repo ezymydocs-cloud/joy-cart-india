@@ -32,6 +32,7 @@ import { Route as AuthenticatedAdminCategoriesRouteImport } from './routes/_auth
 import { Route as AuthenticatedAdminCouponsRouteImport } from './routes/_authenticated/admin.coupons'
 import { Route as AuthenticatedAdminCouriersRouteImport } from './routes/_authenticated/admin.couriers'
 import { Route as AuthenticatedAdminCustomersRouteImport } from './routes/_authenticated/admin.customers'
+import { Route as AuthenticatedAdminFlashDealsRouteImport } from './routes/_authenticated/admin.flash-deals'
 import { Route as AuthenticatedAdminOffersRouteImport } from './routes/_authenticated/admin.offers'
 import { Route as AuthenticatedAdminSettingsRouteImport } from './routes/_authenticated/admin.settings'
 import { Route as AuthenticatedOrderSuccessIdRouteImport } from './routes/_authenticated/order-success.$id'
@@ -162,6 +163,12 @@ const AuthenticatedAdminCustomersRoute =
     path: '/customers',
     getParentRoute: () => AuthenticatedAdminRoute,
   } as any)
+const AuthenticatedAdminFlashDealsRoute =
+  AuthenticatedAdminFlashDealsRouteImport.update({
+    id: '/flash-deals',
+    path: '/flash-deals',
+    getParentRoute: () => AuthenticatedAdminRoute,
+  } as any)
 const AuthenticatedAdminOffersRoute =
   AuthenticatedAdminOffersRouteImport.update({
     id: '/offers',
@@ -243,6 +250,7 @@ export interface FileRoutesByFullPath {
   '/admin/coupons': typeof AuthenticatedAdminCouponsRoute
   '/admin/couriers': typeof AuthenticatedAdminCouriersRoute
   '/admin/customers': typeof AuthenticatedAdminCustomersRoute
+  '/admin/flash-deals': typeof AuthenticatedAdminFlashDealsRoute
   '/admin/offers': typeof AuthenticatedAdminOffersRoute
   '/admin/settings': typeof AuthenticatedAdminSettingsRoute
   '/order-success/$id': typeof AuthenticatedOrderSuccessIdRoute
@@ -276,6 +284,7 @@ export interface FileRoutesByTo {
   '/admin/coupons': typeof AuthenticatedAdminCouponsRoute
   '/admin/couriers': typeof AuthenticatedAdminCouriersRoute
   '/admin/customers': typeof AuthenticatedAdminCustomersRoute
+  '/admin/flash-deals': typeof AuthenticatedAdminFlashDealsRoute
   '/admin/offers': typeof AuthenticatedAdminOffersRoute
   '/admin/settings': typeof AuthenticatedAdminSettingsRoute
   '/order-success/$id': typeof AuthenticatedOrderSuccessIdRoute
@@ -312,6 +321,7 @@ export interface FileRoutesById {
   '/_authenticated/admin/coupons': typeof AuthenticatedAdminCouponsRoute
   '/_authenticated/admin/couriers': typeof AuthenticatedAdminCouriersRoute
   '/_authenticated/admin/customers': typeof AuthenticatedAdminCustomersRoute
+  '/_authenticated/admin/flash-deals': typeof AuthenticatedAdminFlashDealsRoute
   '/_authenticated/admin/offers': typeof AuthenticatedAdminOffersRoute
   '/_authenticated/admin/settings': typeof AuthenticatedAdminSettingsRoute
   '/_authenticated/order-success/$id': typeof AuthenticatedOrderSuccessIdRoute
@@ -348,6 +358,7 @@ export interface FileRouteTypes {
     | '/admin/coupons'
     | '/admin/couriers'
     | '/admin/customers'
+    | '/admin/flash-deals'
     | '/admin/offers'
     | '/admin/settings'
     | '/order-success/$id'
@@ -381,6 +392,7 @@ export interface FileRouteTypes {
     | '/admin/coupons'
     | '/admin/couriers'
     | '/admin/customers'
+    | '/admin/flash-deals'
     | '/admin/offers'
     | '/admin/settings'
     | '/order-success/$id'
@@ -416,6 +428,7 @@ export interface FileRouteTypes {
     | '/_authenticated/admin/coupons'
     | '/_authenticated/admin/couriers'
     | '/_authenticated/admin/customers'
+    | '/_authenticated/admin/flash-deals'
     | '/_authenticated/admin/offers'
     | '/_authenticated/admin/settings'
     | '/_authenticated/order-success/$id'
@@ -610,6 +623,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminCustomersRouteImport
       parentRoute: typeof AuthenticatedAdminRoute
     }
+    '/_authenticated/admin/flash-deals': {
+      id: '/_authenticated/admin/flash-deals'
+      path: '/flash-deals'
+      fullPath: '/admin/flash-deals'
+      preLoaderRoute: typeof AuthenticatedAdminFlashDealsRouteImport
+      parentRoute: typeof AuthenticatedAdminRoute
+    }
     '/_authenticated/admin/offers': {
       id: '/_authenticated/admin/offers'
       path: '/offers'
@@ -689,6 +709,7 @@ interface AuthenticatedAdminRouteChildren {
   AuthenticatedAdminCouponsRoute: typeof AuthenticatedAdminCouponsRoute
   AuthenticatedAdminCouriersRoute: typeof AuthenticatedAdminCouriersRoute
   AuthenticatedAdminCustomersRoute: typeof AuthenticatedAdminCustomersRoute
+  AuthenticatedAdminFlashDealsRoute: typeof AuthenticatedAdminFlashDealsRoute
   AuthenticatedAdminOffersRoute: typeof AuthenticatedAdminOffersRoute
   AuthenticatedAdminSettingsRoute: typeof AuthenticatedAdminSettingsRoute
   AuthenticatedAdminIndexRoute: typeof AuthenticatedAdminIndexRoute
@@ -704,6 +725,7 @@ const AuthenticatedAdminRouteChildren: AuthenticatedAdminRouteChildren = {
   AuthenticatedAdminCouponsRoute: AuthenticatedAdminCouponsRoute,
   AuthenticatedAdminCouriersRoute: AuthenticatedAdminCouriersRoute,
   AuthenticatedAdminCustomersRoute: AuthenticatedAdminCustomersRoute,
+  AuthenticatedAdminFlashDealsRoute: AuthenticatedAdminFlashDealsRoute,
   AuthenticatedAdminOffersRoute: AuthenticatedAdminOffersRoute,
   AuthenticatedAdminSettingsRoute: AuthenticatedAdminSettingsRoute,
   AuthenticatedAdminIndexRoute: AuthenticatedAdminIndexRoute,

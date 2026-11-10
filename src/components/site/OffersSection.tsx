@@ -47,63 +47,6 @@ type StorefrontOffer = {
   product_prices?: OfferProductPrice[];
 };
 
-// Sensible fallbacks if database table hasn't been created or has no active records
-const FALLBACK_OFFERS: StorefrontOffer[] = [
-  {
-    id: "fb-bogo",
-    title: "Buy 1 Get 1 FREE · Toy Carnival Special",
-    description: "Buy any eligible toy and get the second toy completely FREE! Limited festive stock.",
-    badge: "BUY 1 GET 1 FREE",
-    discount_type: "bogo",
-    discount_value: 0,
-    bogo_buy_qty: 1,
-    bogo_get_qty: 1,
-    coupon_code: "BOGOFREE",
-    min_order_value: 0,
-    start_date: new Date().toISOString(),
-    end_date: null,
-    image_url: "/images/teddy.jpg",
-    link_url: "/products",
-    display_location: "all",
-    sort_order: 1,
-    is_active: true,
-  },
-  {
-    id: "fb-1",
-    title: "Welcome Toy Fest · Flat 10% OFF",
-    description: "Enjoy 10% instant discount across all toys, blocks, and plush cuddles.",
-    badge: "WELCOME DEAL",
-    discount_type: "percentage",
-    discount_value: 10,
-    coupon_code: "TOYZ10",
-    min_order_value: 0,
-    start_date: new Date().toISOString(),
-    end_date: null,
-    image_url: "/images/car.jpg",
-    link_url: "/products",
-    display_location: "all",
-    sort_order: 2,
-    is_active: true,
-  },
-  {
-    id: "fb-2",
-    title: "STEM & Building Blocks Bonanza",
-    description: "Flat ₹150 OFF on premium STEM sets and creative puzzles above ₹799.",
-    badge: "WEEKEND SPECIAL",
-    discount_type: "flat",
-    discount_value: 150,
-    coupon_code: "BLOCKS150",
-    min_order_value: 799,
-    start_date: new Date().toISOString(),
-    end_date: null,
-    image_url: "/images/blocks.jpg",
-    link_url: "/products",
-    display_location: "homepage",
-    sort_order: 3,
-    is_active: true,
-  },
-];
-
 function getTimeRemaining(endDateStr: string | null) {
   if (!endDateStr) return null;
   const total = new Date(endDateStr).getTime() - Date.now();
@@ -142,7 +85,7 @@ export function OffersSection() {
   });
 
   const now = new Date();
-  const validOffers = (dbOffers && dbOffers.length > 0 ? dbOffers : FALLBACK_OFFERS).filter((o) => {
+  const validOffers = (dbOffers ?? []).filter((o) => {
     if (!o.is_active) return false;
     const start = new Date(o.start_date);
     if (start > now) return false;

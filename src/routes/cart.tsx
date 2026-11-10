@@ -86,12 +86,6 @@ function Cart() {
         return;
       }
 
-      if (code === "TOYZ10" || code === "BOGOFREE") {
-        setCouponApplied(true);
-        toast.success("Coupon " + code + " applied! Savings will reflect at checkout.");
-        return;
-      }
-
       toast.error("Invalid coupon code. Check available codes on our Offers page.");
     } catch {
       setCouponApplied(true);

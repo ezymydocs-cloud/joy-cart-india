@@ -27,6 +27,18 @@ function Settings() {
   const fixCatsFn = useServerFn(adminFixCategorySpellings);
   const [clearingOrders, setClearingOrders] = useState(false);
   const [fixingCats, setFixingCats] = useState(false);
+  const [customAnnouncement, setCustomAnnouncement] = useState("");
+  const [barEnabled, setBarEnabled] = useState(true);
+
+  useEffect(() => {
+    if (q.data) {
+      setBarEnabled((q.data as any).announcement_bar_enabled !== false);
+      const msgs = (q.data as any).announcement_messages;
+      if (Array.isArray(msgs) && msgs.length > 0 && msgs[0]?.text) {
+        setCustomAnnouncement(msgs[0].text);
+      }
+    }
+  }, [q.data]);
 
   const handleClearOrders = async () => {
     if (!window.confirm("Are you sure you want to delete ALL test orders? This will set the store to a fresh zero-order state for launch.")) return;
@@ -64,7 +76,9 @@ function Settings() {
       whatsapp: String(f.whatsapp ?? "").trim(),
       admin_notification_email: String(f.admin_notification_email ?? "").trim(),
       razorpay_enabled: !!f.razorpay_enabled,
-    }).eq("id", 1);
+      announcement_bar_enabled: barEnabled,
+      announcement_messages: customAnnouncement.trim() ? [{ text: customAnnouncement.trim() }] : [],
+    } as any).eq("id", 1);
     if (error) return toast.error(error.message);
     toast.success("Settings saved");
     qc.invalidateQueries({ queryKey: ["settings"] });
@@ -91,7 +105,33 @@ function Settings() {
         </p>
       </div>
 
-      <Button onClick={save}>Save settings</Button>
+      {/* Top Mini Slider / Announcement Bar Settings */}
+      <div className="space-y-3 rounded-2xl bg-background p-4 border shadow-xs">
+        <div className="flex items-center justify-between">
+          <div>
+            <h3 className="font-bold text-sm text-foreground">Top Announcement Bar (Mini Slider)</h3>
+            <p className="text-xs text-muted-foreground mt-0.5">Controls the scrolling notification bar at the very top of the website.</p>
+          </div>
+          <Switch checked={barEnabled} onCheckedChange={setBarEnabled} />
+        </div>
+
+        {barEnabled && (
+          <div className="pt-2 border-t space-y-2">
+            <Label className="text-xs font-bold">Custom Announcement Message (Optional)</Label>
+            <Input
+              value={customAnnouncement}
+              onChange={(e) => setCustomAnnouncement(e.target.value)}
+              placeholder="e.g. Free Delivery on all prepaid orders! or Grand Festive Sale Live!"
+              className="text-xs"
+            />
+            <p className="text-[11px] text-muted-foreground">
+              Leave blank to display standard store highlights (Pan-India delivery, WhatsApp support). Note: No fake coupon codes will be displayed.
+            </p>
+          </div>
+        )}
+      </div>
+
+      <Button onClick={save} className="font-bold shadow-sm">Save settings</Button>
 
       {/* Store Launch Clean-up Tools */}
       <div className="mt-8 rounded-2xl border border-border bg-card p-5 shadow-xs space-y-4">

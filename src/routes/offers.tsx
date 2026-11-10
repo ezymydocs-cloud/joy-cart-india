@@ -66,63 +66,6 @@ type PublicOffer = {
   product_prices?: OfferProductPrice[];
 };
 
-const FALLBACK_OFFERS: PublicOffer[] = [
-  {
-    id: "f-bogo",
-    title: "Buy 1 Get 1 with Option Mega Bonanza",
-    description: "Buy any toy and get a 2nd unit of the same toy FREE, or choose ANY different toy priced up to 50% for FREE!",
-    badge: "BUY 1 GET 1 WITH OPTION",
-    discount_type: "bogo",
-    discount_value: 0,
-    bogo_buy_qty: 1,
-    bogo_get_qty: 1,
-    bogo_mode: "with_option",
-    coupon_code: "BOGOFREE",
-    min_order_value: 0,
-    start_date: new Date().toISOString(),
-    end_date: null,
-    image_url: "/images/teddy.jpg",
-    link_url: "/products",
-    display_location: "all",
-    sort_order: 1,
-    is_active: true,
-  },
-  {
-    id: "f-1",
-    title: "Welcome Toy Fest · Flat 10% OFF",
-    description: "Get 10% instant discount across all categories on your very first order.",
-    badge: "WELCOME OFFER",
-    discount_type: "percentage",
-    discount_value: 10,
-    coupon_code: "TOYZ10",
-    min_order_value: 0,
-    start_date: new Date().toISOString(),
-    end_date: null,
-    image_url: "/images/car.jpg",
-    link_url: "/products",
-    display_location: "all",
-    sort_order: 2,
-    is_active: true,
-  },
-  {
-    id: "f-2",
-    title: "Mega Block & STEM Set Bonanza",
-    description: "Flat ₹150 OFF on creative block sets and brain puzzles for orders above ₹799.",
-    badge: "WEEKEND SPECIAL",
-    discount_type: "flat",
-    discount_value: 150,
-    coupon_code: "BLOCKS150",
-    min_order_value: 799,
-    start_date: new Date().toISOString(),
-    end_date: null,
-    image_url: "/images/blocks.jpg",
-    link_url: "/products",
-    display_location: "homepage",
-    sort_order: 3,
-    is_active: true,
-  },
-];
-
 function getTimeRemaining(endDateStr: string | null) {
   if (!endDateStr) return null;
   const total = new Date(endDateStr).getTime() - Date.now();
@@ -160,7 +103,7 @@ function OffersPage() {
   });
 
   const now = new Date();
-  const rawOffers = dbOffers && dbOffers.length > 0 ? dbOffers : FALLBACK_OFFERS;
+  const rawOffers = dbOffers ?? [];
   const activeOffers = rawOffers
     .filter((o) => {
       if (!o.is_active) return false;
@@ -243,8 +186,20 @@ function OffersPage() {
       </div>
 
       {/* Offers Grid */}
-      <div className="mt-8 sm:mt-12 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-        {activeOffers.map((o) => {
+      {activeOffers.length === 0 ? (
+        <div className="mt-8 sm:mt-12 rounded-3xl border border-dashed bg-card p-12 text-center max-w-lg mx-auto">
+          <div className="text-5xl">🎁</div>
+          <h3 className="mt-4 font-bold text-lg text-foreground">No Active Promotional Offers</h3>
+          <p className="mt-1 text-xs text-muted-foreground">
+            There are currently no active offers or coupon codes. Check back later or browse all toys!
+          </p>
+          <Button asChild className="mt-5 font-bold" variant="outline">
+            <Link to="/products">Browse All Toys</Link>
+          </Button>
+        </div>
+      ) : (
+        <div className="mt-8 sm:mt-12 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+          {activeOffers.map((o) => {
           const timeLeft = getTimeRemaining(o.end_date);
           const isCopied = copiedCode === o.coupon_code;
           const isBogo = o.discount_type === "bogo";
@@ -392,7 +347,8 @@ function OffersPage() {
             </div>
           );
         })}
-      </div>
+        </div>
+      )}
 
       {/* How to Redeem Help Section */}
       <div className="mt-14 rounded-3xl border bg-muted/40 p-6 sm:p-10">
