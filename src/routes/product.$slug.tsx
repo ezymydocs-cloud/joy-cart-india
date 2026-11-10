@@ -18,6 +18,7 @@ import {
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { PRODUCT_SELECT, sortedImages, type Product, type ProductVariant } from "@/lib/catalog";
+import { resolveImageUrl } from "@/lib/images";
 import { discountPct, inr } from "@/lib/format";
 import { useCart } from "@/lib/cart";
 import { Button } from "@/components/ui/button";
@@ -115,7 +116,8 @@ function ProductPage() {
     ? [{ id: "var_main", url: activeVariant.image_url, sort_order: 0 }]
     : [];
 
-  const imgs = variantImgs.length > 0 ? variantImgs : sortedImages(p);
+  const rawImgs = variantImgs.length > 0 ? variantImgs : sortedImages(p);
+  const imgs = rawImgs.map((im) => ({ ...im, url: resolveImageUrl(im.url) }));
   const img = imgs[active]?.url ?? imgs[0]?.url ?? "/images/teddy.jpg";
 
   const effectivePrice =
@@ -256,6 +258,9 @@ function ProductPage() {
               className="size-full object-contain transition-transform duration-500 group-hover:scale-105"
               width={800}
               height={800}
+              onError={(e) => {
+                (e.currentTarget as HTMLImageElement).src = "/images/teddy.jpg";
+              }}
             />
             {off > 0 && (
               <span className="absolute left-4 top-4 rounded-full bg-secondary px-3 py-1 text-xs font-bold text-secondary-foreground shadow-sm">
@@ -278,7 +283,17 @@ function ProductPage() {
                     i === active ? "border-secondary ring-2 ring-secondary/20" : "border-border/80 hover:border-muted-foreground"
                   }`}
                 >
-                  <img src={im.url} alt="" className="size-full object-contain" loading="lazy" width={72} height={72} />
+                  <img
+                    src={im.url}
+                    alt=""
+                    className="size-full object-contain"
+                    loading="lazy"
+                    width={72}
+                    height={72}
+                    onError={(e) => {
+                      (e.currentTarget as HTMLImageElement).src = "/images/teddy.jpg";
+                    }}
+                  />
                 </button>
               ))}
             </div>

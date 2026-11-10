@@ -1,6 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useCategories } from "@/components/site/ProductListing";
 import { formatCategoryName } from "@/lib/format";
+import { SafeImage } from "@/components/ui/SafeImage";
 
 export const Route = createFileRoute("/categories")({
   head: () => ({
@@ -44,18 +45,16 @@ function Cats() {
               params={{ slug: c.slug }}
               className="group flex flex-col items-center overflow-hidden rounded-2xl border bg-card p-4 text-center transition-all duration-300 hover:-translate-y-1 hover:border-secondary/40 hover:shadow-hover"
             >
-              <div className="aspect-square w-full overflow-hidden rounded-xl bg-muted/60">
-                {c.image_url ? (
-                  <img
-                    src={c.image_url}
-                    alt={c.name}
-                    className="size-full object-cover transition-transform duration-500 group-hover:scale-108"
-                    loading="lazy"
-                  />
-                ) : (
-                  <div className="grid size-full place-items-center text-4xl">🧸</div>
-                )}
-              </div>
+              <SafeImage
+                src={c.image_url}
+                categorySlug={c.slug}
+                alt={formatCategoryName(c.name)}
+                aspectRatioClass="aspect-square"
+                containerClassName="w-full rounded-xl bg-white p-2 border"
+                className="size-full object-contain transition-transform duration-500 group-hover:scale-108"
+                width={300}
+                height={300}
+              />
               <div className="mt-3.5 font-display text-base font-bold text-foreground group-hover:text-secondary transition-colors">
                 {formatCategoryName(c.name)}
               </div>

@@ -56,13 +56,21 @@ export async function fetchSettings() {
 export const STORAGE_BUCKETS = ["product-images", "banners", "categories"] as const;
 export type Bucket = (typeof STORAGE_BUCKETS)[number];
 
-/** Uploads a device file and returns the app URL that serves it. */
+const SUPABASE_STORAGE_PUBLIC_BASE = "https://hhrgtxpupgzjzstfzclw.supabase.co/storage/v1/object/public";
+
+/** Uploads a device file and returns the direct public CDN URL that serves it reliably. */
 export async function uploadImage(bucket: Bucket, file: File) {
-  if (!file.type.startsWith("image/")) throw new Error("Only image files are allowed");
-  if (file.size > 5 * 1024 * 1024) throw new Error("Image must be under 5 MB");
+  const allowedTypes = ["image/jpeg", "image/png", "image/webp", "image/avif", "image/svg+xml", "image/gif"];
+  if (!allowedTypes.includes(file.type) && !file.type.startsWith("image/")) {
+    throw new Error("Only image files (JPEG, PNG, WebP, AVIF) are allowed");
+  }
+  if (file.size > 5 * 1024 * 1024) {
+    throw new Error("Image must be under 5 MB in size");
+  }
   const ext = (file.name.split(".").pop() || "jpg").toLowerCase().replace(/[^a-z0-9]/g, "");
   const path = `${new Date().getFullYear()}/${crypto.randomUUID()}.${ext}`;
   const { error } = await supabase.storage.from(bucket).upload(path, file, { contentType: file.type, upsert: false });
   if (error) throw error;
-  return { path, url: `/api/public/img/${bucket}/${path}` };
+  // Return direct public CDN URL to avoid proxy bottlenecks
+  return { path, url: `${SUPABASE_STORAGE_PUBLIC_BASE}/${bucket}/${path}` };
 }

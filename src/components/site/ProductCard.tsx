@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { discountPct, inr } from "@/lib/format";
 import { mainImage, sortedImages, type Product } from "@/lib/catalog";
+import { resolveImageUrl } from "@/lib/images";
 import { useCart } from "@/lib/cart";
 import { Button } from "@/components/ui/button";
 
@@ -18,9 +19,9 @@ export function ProductCard({ p }: { p: Product }) {
   const off = discountPct(p.price, p.mrp);
   const out = p.stock <= 0;
 
-  // Gather all unique images for this product
-  const productImgs = sortedImages(p).map((img) => img.url);
-  const allImages = productImgs.length > 0 ? productImgs : [mainImage(p)];
+  // Gather all unique images for this product, resolving to CDN URLs
+  const productImgs = sortedImages(p).map((img) => resolveImageUrl(img.url));
+  const allImages = productImgs.length > 0 ? productImgs : [resolveImageUrl(mainImage(p))];
   const hasMultipleImages = allImages.length > 1;
 
   // Desktop hover cycling (~1s interval)
@@ -97,8 +98,12 @@ export function ProductCard({ p }: { p: Product }) {
             src={src}
             alt={`${p.name} - image ${i + 1}`}
             loading="lazy"
+            decoding="async"
             width={400}
             height={400}
+            onError={(e) => {
+              (e.currentTarget as HTMLImageElement).src = "/images/teddy.jpg";
+            }}
             className={`absolute inset-0 size-full object-contain p-2 transition-all duration-500 ease-out group-hover:scale-105 ${
               i === activeIdx ? "opacity-100 z-10" : "opacity-0 z-0 pointer-events-none"
             }`}

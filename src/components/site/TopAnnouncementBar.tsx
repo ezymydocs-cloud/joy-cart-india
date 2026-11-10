@@ -1,31 +1,57 @@
 import { useState, useEffect } from "react";
-import { Sparkles, Truck, Phone, Copy, Check, Flame, ShieldCheck } from "lucide-react";
+import {
+  Sparkles,
+  Truck,
+  Phone,
+  Copy,
+  Check,
+  Flame,
+  ShieldCheck,
+  Gift,
+  Heart,
+  Zap,
+} from "lucide-react";
 import { toast } from "sonner";
 import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
 import { fetchSettings } from "@/lib/catalog";
-import { BRAND } from "@/lib/format";
+import { BRAND, formatPhone } from "@/lib/format";
 
-type AnnouncementMessage = {
-  icon: typeof Sparkles;
-  text: string;
-  code?: string | null;
-  link?: string | null;
+export const ICON_MAP: Record<string, React.ComponentType<{ className?: string }>> = {
+  truck: Truck,
+  shield: ShieldCheck,
+  phone: Phone,
+  sparkles: Sparkles,
+  flame: Flame,
+  gift: Gift,
+  heart: Heart,
+  zap: Zap,
 };
 
-// Clean default messages WITHOUT fake coupon codes
-const CLEAN_DEFAULT_MESSAGES: AnnouncementMessage[] = [
+export interface BannerMessage {
+  id?: string;
+  text: string;
+  icon?: string;
+  link?: string | null;
+  code?: string | null;
+  start_date?: string | null;
+  end_date?: string | null;
+}
+
+const DEFAULT_CENTER_MESSAGES: BannerMessage[] = [
   {
-    icon: Truck,
-    text: "Fast Pan-India Delivery · Same-Day Return Policy on Delivery Date",
-  },
-  {
-    icon: ShieldCheck,
+    id: "default-1",
     text: "100% Child-Safe, Certified & Non-Toxic Premium Toys for Kids",
+    icon: "shield",
   },
   {
-    icon: Phone,
-    text: `Customer Support Available Mon–Sat · WhatsApp: +${BRAND.phone}`,
+    id: "default-2",
+    text: "Fast Pan-India Delivery · Same-Day Return Policy on Delivery Date",
+    icon: "truck",
+  },
+  {
+    id: "default-3",
+    text: "Customer Support Mon–Sat · WhatsApp Available",
+    icon: "phone",
     link: BRAND.whatsapp,
   },
 ];
@@ -34,80 +60,62 @@ export function TopAnnouncementBar() {
   const [current, setCurrent] = useState(0);
   const [copied, setCopied] = useState(false);
 
-  // 1. Fetch store settings
+  // Fetch settings from database
   const { data: settings } = useQuery({
     queryKey: ["settings"],
     queryFn: fetchSettings,
   });
 
   const isBarEnabled = (settings as any)?.announcement_bar_enabled !== false;
-  const customMessages: any[] = Array.isArray((settings as any)?.announcement_messages)
-    ? (settings as any).announcement_messages
-    : [];
 
-  // 2. Fetch real active offers from database (no mock/fake fallbacks)
-  const { data: activeOffers = [] } = useQuery({
-    queryKey: ["offers", "announcements"],
-    queryFn: async () => {
-      try {
-        const { data, error } = await supabase
-          .from("offers")
-          .select("title,coupon_code,link_url,start_date,end_date,is_active")
-          .eq("is_active", true)
-          .in("display_location", ["all", "announcement"])
-          .order("sort_order", { ascending: true });
-        if (error) return [];
-        return data ?? [];
-      } catch {
-        return [];
-      }
-    },
-    staleTime: 60 * 1000,
-  });
+  const bgColor = (settings as any)?.announcement_bg_color || "#0f172a";
+  const textColor = (settings as any)?.announcement_text_color || "#ffffff";
+
+  // Left banner config
+  const leftText = (settings as any)?.announcement_left_text ?? "Pan-India Safe Delivery";
+  const leftIconKey = (settings as any)?.announcement_left_icon ?? "truck";
+  const leftLink = (settings as any)?.announcement_left_link ?? "";
+  const LeftIcon = ICON_MAP[leftIconKey] || Truck;
+
+  // Right banner config (with ++91 fix)
+  const rawPhone = (settings as any)?.announcement_support_phone || (settings as any)?.phone || BRAND.phone;
+  const formattedPhone = formatPhone(rawPhone);
+  const rightText = (settings as any)?.announcement_right_text
+    ? (settings as any).announcement_right_text.replace(/\+\+91/g, "+91").replace(/\+\+/g, "+")
+    : `Support: ${formattedPhone}`;
+  const rightIconKey = (settings as any)?.announcement_right_icon ?? "phone";
+  const rightLink = (settings as any)?.announcement_right_link || BRAND.whatsapp;
+  const RightIcon = ICON_MAP[rightIconKey] || Phone;
+
+  // Center messages config
+  const rawCenterMsgs: BannerMessage[] = Array.isArray((settings as any)?.announcement_center_messages)
+    ? (settings as any).announcement_center_messages
+    : Array.isArray((settings as any)?.announcement_messages) && (settings as any).announcement_messages.length > 0
+    ? (settings as any).announcement_messages
+    : DEFAULT_CENTER_MESSAGES;
 
   const now = new Date();
-  const validOfferMessages: AnnouncementMessage[] = activeOffers
-    .filter((o) => {
-      if (!o.is_active) return false;
-      const start = new Date(o.start_date);
-      if (start > now) return false;
-      if (o.end_date && new Date(o.end_date) < now) return false;
-      return true;
-    })
-    .map((o) => ({
-      icon: Flame,
-      text: o.title,
-      code: o.coupon_code || null,
-      link: o.link_url,
-    }));
+  const validMessages = rawCenterMsgs.filter((m) => {
+    if (!m || !m.text || !m.text.trim()) return false;
+    if (m.start_date && new Date(m.start_date) > now) return false;
+    if (m.end_date && new Date(m.end_date) < now) return false;
+    return true;
+  });
 
-  const parsedCustomMessages: AnnouncementMessage[] = customMessages
-    .filter((m) => m && m.text && typeof m.text === "string" && m.text.trim())
-    .map((m) => ({
-      icon: Sparkles,
-      text: m.text,
-      code: m.code || null,
-      link: m.link || null,
-    }));
-
-  // Combine real messages: custom admin messages first, then real active offers, then clean store highlights
-  const allMessages: AnnouncementMessage[] =
-    parsedCustomMessages.length > 0 || validOfferMessages.length > 0
-      ? [...parsedCustomMessages, ...validOfferMessages, ...CLEAN_DEFAULT_MESSAGES.slice(0, 1)]
-      : CLEAN_DEFAULT_MESSAGES;
+  const activeMessages = validMessages.length > 0 ? validMessages : DEFAULT_CENTER_MESSAGES;
 
   useEffect(() => {
-    if (allMessages.length <= 1) return;
+    if (activeMessages.length <= 1) return;
     const timer = setInterval(() => {
-      setCurrent((prev) => (prev + 1) % allMessages.length);
+      setCurrent((prev) => (prev + 1) % activeMessages.length);
     }, 4500);
     return () => clearInterval(timer);
-  }, [allMessages.length]);
+  }, [activeMessages.length]);
 
   if (!isBarEnabled) return null;
 
-  const activeMsg = allMessages[current % allMessages.length] || allMessages[0];
-  const Icon = activeMsg.icon;
+  const activeMsg = activeMessages[current % activeMessages.length] || activeMessages[0];
+  const CenterIcon = ICON_MAP[activeMsg.icon || "sparkles"] || Sparkles;
 
   const handleCopyCode = (code: string) => {
     navigator.clipboard.writeText(code);
@@ -117,56 +125,84 @@ export function TopAnnouncementBar() {
   };
 
   return (
-    <div className="relative z-50 bg-primary px-3 py-2 text-primary-foreground">
-      <div className="mx-auto flex max-w-7xl items-center justify-between text-xs">
-        {/* Left helper on desktop */}
-        <div className="hidden items-center gap-2 text-primary-foreground/75 md:flex">
-          <Truck className="size-3.5 text-secondary" />
-          <span>Pan-India Safe Delivery</span>
-        </div>
+    <div
+      style={{ backgroundColor: bgColor, color: textColor }}
+      className="relative z-50 px-3 py-2 text-xs transition-colors duration-300 shadow-xs"
+    >
+      <div className="mx-auto flex max-w-7xl items-center justify-between">
+        {/* Left item (desktop only) */}
+        {leftText && (
+          <div className="hidden items-center gap-2 opacity-90 md:flex">
+            {leftLink ? (
+              <a
+                href={leftLink}
+                className="flex items-center gap-1.5 transition hover:opacity-100"
+                target={leftLink.startsWith("http") ? "_blank" : undefined}
+                rel="noreferrer"
+              >
+                <LeftIcon className="size-3.5 text-secondary shrink-0" />
+                <span>{leftText}</span>
+              </a>
+            ) : (
+              <div className="flex items-center gap-1.5">
+                <LeftIcon className="size-3.5 text-secondary shrink-0" />
+                <span>{leftText}</span>
+              </div>
+            )}
+          </div>
+        )}
 
-        {/* Center Carousel */}
+        {/* Center Rotating Message */}
         <div className="flex flex-1 items-center justify-center gap-2 text-center">
-          <Icon className="size-3.5 shrink-0 text-secondary" />
-          <span className="font-medium truncate max-w-[280px] sm:max-w-md md:max-w-lg">
-            {activeMsg.text}
-          </span>
+          <CenterIcon className="size-3.5 shrink-0 text-secondary" />
+          {activeMsg.link ? (
+            <a
+              href={activeMsg.link}
+              target={activeMsg.link.startsWith("http") ? "_blank" : undefined}
+              rel="noreferrer"
+              className="font-medium hover:underline truncate max-w-[280px] sm:max-w-md md:max-w-lg"
+            >
+              {activeMsg.text}
+            </a>
+          ) : (
+            <span className="font-medium truncate max-w-[280px] sm:max-w-md md:max-w-lg">
+              {activeMsg.text}
+            </span>
+          )}
 
           {activeMsg.code && (
             <button
               onClick={() => handleCopyCode(activeMsg.code!)}
-              className="inline-flex items-center gap-1 rounded-full bg-secondary px-2.5 py-0.5 font-mono text-[11px] font-bold text-secondary-foreground shadow-xs transition hover:brightness-110 active:scale-95"
+              className="inline-flex items-center gap-1 rounded-full bg-secondary px-2.5 py-0.5 font-mono text-[11px] font-bold text-secondary-foreground shadow-xs transition hover:brightness-110 active:scale-95 shrink-0"
               title="Click to copy code"
             >
               {copied ? <Check className="size-3" /> : <Copy className="size-3" />}
               <span>{activeMsg.code}</span>
             </button>
           )}
-
-          {activeMsg.link && !activeMsg.code && (
-            <a
-              href={activeMsg.link}
-              target="_blank"
-              rel="noreferrer"
-              className="font-bold underline text-secondary hover:text-secondary-foreground text-[11px]"
-            >
-              Chat
-            </a>
-          )}
         </div>
 
-        {/* Right Help info */}
-        <div className="hidden items-center gap-3 text-primary-foreground/75 md:flex">
-          <a
-            href={BRAND.whatsapp}
-            target="_blank"
-            rel="noreferrer"
-            className="flex items-center gap-1 hover:text-white"
-          >
-            <Phone className="size-3" />
-            <span>Support: +{BRAND.phone}</span>
-          </a>
-        </div>
+        {/* Right Help / Phone item (desktop only) */}
+        {rightText && (
+          <div className="hidden items-center gap-2 opacity-90 md:flex">
+            {rightLink ? (
+              <a
+                href={rightLink}
+                target={rightLink.startsWith("http") ? "_blank" : undefined}
+                rel="noreferrer"
+                className="flex items-center gap-1.5 transition hover:opacity-100"
+              >
+                <RightIcon className="size-3.5 text-secondary shrink-0" />
+                <span>{rightText}</span>
+              </a>
+            ) : (
+              <div className="flex items-center gap-1.5">
+                <RightIcon className="size-3.5 text-secondary shrink-0" />
+                <span>{rightText}</span>
+              </div>
+            )}
+          </div>
+        )}
       </div>
     </div>
   );

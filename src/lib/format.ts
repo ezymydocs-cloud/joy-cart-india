@@ -3,6 +3,22 @@ export function formatCategoryName(name?: string | null): string {
   return name.replace(/\bpuzzel\b/gi, "Puzzle");
 }
 
+/** Formats a phone number cleanly without duplicate pluses (e.g. ++91 -> +91 8446418374) */
+export function formatPhone(phone?: string | null): string {
+  if (!phone) return "+91 8446418374";
+  const trimmed = phone.trim().replace(/^\++/, "");
+  if (trimmed.startsWith("91 ") || trimmed.startsWith("91-")) {
+    return `+${trimmed}`;
+  }
+  if (trimmed.startsWith("91") && trimmed.length === 12) {
+    return `+91 ${trimmed.slice(2)}`;
+  }
+  if (trimmed.length === 10) {
+    return `+91 ${trimmed}`;
+  }
+  return `+${trimmed}`;
+}
+
 export const CANCEL_RULE =
   "Order can be cancelled only before it is shipped. Once shipped and tracking is generated, cancellation is not possible.";
 

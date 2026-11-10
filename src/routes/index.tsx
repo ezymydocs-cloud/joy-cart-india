@@ -13,6 +13,7 @@ import { TrustSection } from "@/components/site/TrustSection";
 import { PromoBannerGrid } from "@/components/site/PromoBannerGrid";
 import { FlashSaleSection } from "@/components/site/FlashSaleSection";
 import { OffersSection } from "@/components/site/OffersSection";
+import { SafeImage } from "@/components/ui/SafeImage";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -312,20 +313,16 @@ function Index() {
                 params={{ slug: c.slug }}
                 className="group relative flex flex-col items-center overflow-hidden rounded-2xl border bg-card p-3 text-center transition-all duration-300 hover:-translate-y-1 hover:border-secondary/40 hover:shadow-hover"
               >
-                <div className="aspect-square w-full overflow-hidden rounded-xl bg-muted/60">
-                  {c.image_url ? (
-                    <img
-                      src={c.image_url}
-                      alt={formatCategoryName(c.name)}
-                      loading="lazy"
-                      className="size-full object-cover transition-transform duration-500 group-hover:scale-108"
-                      width={300}
-                      height={300}
-                    />
-                  ) : (
-                    <div className="grid size-full place-items-center text-3xl">🧸</div>
-                  )}
-                </div>
+                <SafeImage
+                  src={c.image_url}
+                  categorySlug={c.slug}
+                  alt={formatCategoryName(c.name)}
+                  aspectRatioClass="aspect-square"
+                  containerClassName="w-full rounded-xl bg-white p-2 border"
+                  className="size-full object-contain transition-transform duration-500 group-hover:scale-108"
+                  width={300}
+                  height={300}
+                />
                 <div className="mt-3 text-sm font-bold text-foreground group-hover:text-secondary transition-colors">
                   {formatCategoryName(c.name)}
                 </div>
