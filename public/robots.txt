@@ -7,6 +7,11 @@ Allow: /android-chrome-*.png
 Allow: /site.webmanifest
 Allow: /manifest.webmanifest
 Disallow: /admin
-Disallow: /api/
+Disallow: /cart
+Disallow: /checkout
+Disallow: /login
+Disallow: /orders
+Disallow: /*?*sort=
+Disallow: /*?*min=
 
 Sitemap: https://trendytoyz.in/sitemap.xml

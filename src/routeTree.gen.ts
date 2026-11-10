@@ -23,6 +23,7 @@ import { Route as AuthenticatedAccountRouteImport } from './routes/_authenticate
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
 import { Route as AuthenticatedCheckoutRouteImport } from './routes/_authenticated/checkout'
 import { Route as ApiCreateOrderRouteImport } from './routes/api/create-order'
+import { Route as ApiSitemapRouteImport } from './routes/api/sitemap'
 import { Route as ApiVerifyPaymentRouteImport } from './routes/api/verify-payment'
 import { Route as CategorySlugRouteImport } from './routes/category.$slug'
 import { Route as PoliciesSlugRouteImport } from './routes/policies.$slug'
@@ -113,6 +114,11 @@ const AuthenticatedCheckoutRoute = AuthenticatedCheckoutRouteImport.update({
 const ApiCreateOrderRoute = ApiCreateOrderRouteImport.update({
   id: '/api/create-order',
   path: '/api/create-order',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiSitemapRoute = ApiSitemapRouteImport.update({
+  id: '/api/sitemap',
+  path: '/api/sitemap',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiVerifyPaymentRoute = ApiVerifyPaymentRouteImport.update({
@@ -254,6 +260,7 @@ export interface FileRoutesByFullPath {
   '/admin': typeof AuthenticatedAdminRouteWithChildren
   '/checkout': typeof AuthenticatedCheckoutRoute
   '/api/create-order': typeof ApiCreateOrderRoute
+  '/api/sitemap': typeof ApiSitemapRoute
   '/api/verify-payment': typeof ApiVerifyPaymentRoute
   '/category/$slug': typeof CategorySlugRoute
   '/policies/$slug': typeof PoliciesSlugRoute
@@ -290,6 +297,7 @@ export interface FileRoutesByTo {
   '/account': typeof AuthenticatedAccountRoute
   '/checkout': typeof AuthenticatedCheckoutRoute
   '/api/create-order': typeof ApiCreateOrderRoute
+  '/api/sitemap': typeof ApiSitemapRoute
   '/api/verify-payment': typeof ApiVerifyPaymentRoute
   '/category/$slug': typeof CategorySlugRoute
   '/policies/$slug': typeof PoliciesSlugRoute
@@ -329,6 +337,7 @@ export interface FileRoutesById {
   '/_authenticated/admin': typeof AuthenticatedAdminRouteWithChildren
   '/_authenticated/checkout': typeof AuthenticatedCheckoutRoute
   '/api/create-order': typeof ApiCreateOrderRoute
+  '/api/sitemap': typeof ApiSitemapRoute
   '/api/verify-payment': typeof ApiVerifyPaymentRoute
   '/category/$slug': typeof CategorySlugRoute
   '/policies/$slug': typeof PoliciesSlugRoute
@@ -368,6 +377,7 @@ export interface FileRouteTypes {
     | '/admin'
     | '/checkout'
     | '/api/create-order'
+    | '/api/sitemap'
     | '/api/verify-payment'
     | '/category/$slug'
     | '/policies/$slug'
@@ -404,6 +414,7 @@ export interface FileRouteTypes {
     | '/account'
     | '/checkout'
     | '/api/create-order'
+    | '/api/sitemap'
     | '/api/verify-payment'
     | '/category/$slug'
     | '/policies/$slug'
@@ -442,6 +453,7 @@ export interface FileRouteTypes {
     | '/_authenticated/admin'
     | '/_authenticated/checkout'
     | '/api/create-order'
+    | '/api/sitemap'
     | '/api/verify-payment'
     | '/category/$slug'
     | '/policies/$slug'
@@ -478,6 +490,7 @@ export interface RootRouteChildren {
   ResetPasswordRoute: typeof ResetPasswordRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   ApiCreateOrderRoute: typeof ApiCreateOrderRoute
+  ApiSitemapRoute: typeof ApiSitemapRoute
   ApiVerifyPaymentRoute: typeof ApiVerifyPaymentRoute
   CategorySlugRoute: typeof CategorySlugRoute
   PoliciesSlugRoute: typeof PoliciesSlugRoute
@@ -584,6 +597,13 @@ declare module '@tanstack/react-router' {
       path: '/api/create-order'
       fullPath: '/api/create-order'
       preLoaderRoute: typeof ApiCreateOrderRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/sitemap': {
+      id: '/api/sitemap'
+      path: '/api/sitemap'
+      fullPath: '/api/sitemap'
+      preLoaderRoute: typeof ApiSitemapRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/verify-payment': {
@@ -811,6 +831,7 @@ const rootRouteChildren: RootRouteChildren = {
   ResetPasswordRoute: ResetPasswordRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
   ApiCreateOrderRoute: ApiCreateOrderRoute,
+  ApiSitemapRoute: ApiSitemapRoute,
   ApiVerifyPaymentRoute: ApiVerifyPaymentRoute,
   CategorySlugRoute: CategorySlugRoute,
   PoliciesSlugRoute: PoliciesSlugRoute,
