@@ -14,24 +14,52 @@ import { PromoBannerGrid } from "@/components/site/PromoBannerGrid";
 import { FlashSaleSection } from "@/components/site/FlashSaleSection";
 import { OffersSection } from "@/components/site/OffersSection";
 import { SafeImage } from "@/components/ui/SafeImage";
+import {
+  getCanonicalUrl,
+  getOrganizationSchema,
+  getWebSiteSchema,
+  DEFAULT_OG_IMAGE,
+} from "@/lib/seo";
 
 export const Route = createFileRoute("/")({
-  head: () => ({
-    meta: [
-      { title: "TrendyToyz | Premium Toys for Kids Delivered Across India" },
-      {
-        name: "description",
-        content:
-          "Discover trending, child-safe, and educational toys at TrendyToyz. Fast delivery across India, Cash on Delivery, and hassle-free returns.",
-      },
-      { property: "og:title", content: "TrendyToyz | India's Favorite Toy Store" },
-      {
-        property: "og:description",
-        content:
-          "Explore soft toys, remote control cars, STEM building blocks, and games at TrendyToyz.",
-      },
-    ],
-  }),
+  head: () => {
+    const canonical = getCanonicalUrl("/");
+    const title = "TrendyToyz | Premium Child-Safe Toys for Kids | Buy Online India";
+    const description =
+      "Shop 100% certified child-safe toys, diecast vehicles, educational puzzles, and games at TrendyToyz. Fast pan-India delivery, COD, and same-day returns.";
+    const orgSchema = getOrganizationSchema();
+    const websiteSchema = getWebSiteSchema();
+
+    return {
+      meta: [
+        { title },
+        { name: "description", content: description },
+        // Open Graph
+        { property: "og:type", content: "website" },
+        { property: "og:site_name", content: "TrendyToyz" },
+        { property: "og:title", content: title },
+        { property: "og:description", content: description },
+        { property: "og:url", content: canonical },
+        { property: "og:image", content: DEFAULT_OG_IMAGE },
+        // Twitter
+        { name: "twitter:card", content: "summary_large_image" },
+        { name: "twitter:title", content: title },
+        { name: "twitter:description", content: description },
+        { name: "twitter:image", content: DEFAULT_OG_IMAGE },
+      ],
+      links: [{ rel: "canonical", href: canonical }],
+      scripts: [
+        {
+          type: "application/ld+json",
+          children: JSON.stringify(orgSchema),
+        },
+        {
+          type: "application/ld+json",
+          children: JSON.stringify(websiteSchema),
+        },
+      ],
+    };
+  },
   component: Index,
 });
 
@@ -131,11 +159,16 @@ function Banners() {
                     {"badge" in b ? (b.badge as string) : "SPECIAL PROMO"}
                   </span>
 
-                  {b.title && (
-                    <h2 className="mt-1 sm:mt-3 font-display text-base sm:text-3xl md:text-5xl font-bold leading-tight text-white line-clamp-2 sm:line-clamp-none">
-                      {b.title}
-                    </h2>
-                  )}
+                  {b.title &&
+                    (idx === 0 ? (
+                      <h1 className="mt-1 sm:mt-3 font-display text-base sm:text-3xl md:text-5xl font-bold leading-tight text-white line-clamp-2 sm:line-clamp-none">
+                        {b.title}
+                      </h1>
+                    ) : (
+                      <h2 className="mt-1 sm:mt-3 font-display text-base sm:text-3xl md:text-5xl font-bold leading-tight text-white line-clamp-2 sm:line-clamp-none">
+                        {b.title}
+                      </h2>
+                    ))}
 
                   {b.subtitle && (
                     <p className="mt-1 sm:mt-2 text-[10px] sm:text-xs md:text-base font-medium text-white/90 max-w-md line-clamp-2 sm:line-clamp-none">

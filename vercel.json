@@ -4,6 +4,11 @@
   "trailingSlash": false,
   "redirects": [
     {
+      "source": "/category/puzzel-blocks",
+      "destination": "/category/puzzle-blocks",
+      "permanent": true
+    },
+    {
       "source": "/:path*",
       "has": [
         {

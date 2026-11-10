@@ -77,11 +77,13 @@ export function TopAnnouncementBar() {
   const leftLink = (settings as any)?.announcement_left_link ?? "";
   const LeftIcon = ICON_MAP[leftIconKey] || Truck;
 
-  // Right banner config (with ++91 fix)
+  // Right banner config (with permanent ++91 fix)
   const rawPhone = (settings as any)?.announcement_support_phone || (settings as any)?.phone || BRAND.phone;
   const formattedPhone = formatPhone(rawPhone);
   const rightText = (settings as any)?.announcement_right_text
-    ? (settings as any).announcement_right_text.replace(/\+\+91/g, "+91").replace(/\+\+/g, "+")
+    ? (settings as any).announcement_right_text
+        .replace(/Support:\s*\++91/gi, "Support: +91")
+        .replace(/\+{2,}/g, "+")
     : `Support: ${formattedPhone}`;
   const rightIconKey = (settings as any)?.announcement_right_icon ?? "phone";
   const rightLink = (settings as any)?.announcement_right_link || BRAND.whatsapp;

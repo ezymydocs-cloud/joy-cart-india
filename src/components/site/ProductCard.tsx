@@ -8,7 +8,7 @@ import { resolveImageUrl } from "@/lib/images";
 import { useCart } from "@/lib/cart";
 import { Button } from "@/components/ui/button";
 
-export function ProductCard({ p }: { p: Product }) {
+export function ProductCard({ p, priority = false }: { p: Product; priority?: boolean }) {
   const { add } = useCart();
   const [justAdded, setJustAdded] = useState(false);
   const [activeIdx, setActiveIdx] = useState(0);
@@ -96,8 +96,8 @@ export function ProductCard({ p }: { p: Product }) {
           <img
             key={src + i}
             src={src}
-            alt={`${p.name} - image ${i + 1}`}
-            loading="lazy"
+            alt={`${p.name} - 100% Certified Child-Safe Toy at TrendyToyz (View ${i + 1})`}
+            loading={priority && i === 0 ? "eager" : "lazy"}
             decoding="async"
             width={400}
             height={400}

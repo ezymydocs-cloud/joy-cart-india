@@ -2,16 +2,47 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useCategories } from "@/components/site/ProductListing";
 import { formatCategoryName } from "@/lib/format";
 import { SafeImage } from "@/components/ui/SafeImage";
+import { getCanonicalUrl, DEFAULT_OG_IMAGE, SITE_URL } from "@/lib/seo";
 
 export const Route = createFileRoute("/categories")({
-  head: () => ({
-    meta: [
-      { title: "Toy Categories | TrendyToyz" },
-      { name: "description", content: "Explore TrendyToyz categories: soft toys, cars, building blocks and more." },
-      { property: "og:title", content: "Toy Categories | TrendyToyz" },
-      { property: "og:description", content: "Explore all toy categories at TrendyToyz." },
-    ],
-  }),
+  head: () => {
+    const canonical = getCanonicalUrl("/categories");
+    const title = "Toy Categories | Browse Toys by Type | TrendyToyz";
+    const description =
+      "Explore TrendyToyz categories: Die Cast Models, Learning Toys, Musical Toys, Puzzle & Blocks, Role Play Toys, and more 100% child-safe toys.";
+
+    const breadcrumbs = {
+      "@context": "https://schema.org",
+      "@type": "BreadcrumbList",
+      itemListElement: [
+        { "@type": "ListItem", position: 1, name: "Home", item: `${SITE_URL}/` },
+        { "@type": "ListItem", position: 2, name: "Categories", item: canonical },
+      ],
+    };
+
+    return {
+      meta: [
+        { title },
+        { name: "description", content: description },
+        // Open Graph
+        { property: "og:type", content: "website" },
+        { property: "og:site_name", content: "TrendyToyz" },
+        { property: "og:title", content: title },
+        { property: "og:description", content: description },
+        { property: "og:url", content: canonical },
+        { property: "og:image", content: DEFAULT_OG_IMAGE },
+        // Twitter
+        { name: "twitter:card", content: "summary_large_image" },
+        { name: "twitter:title", content: title },
+        { name: "twitter:description", content: description },
+        { name: "twitter:image", content: DEFAULT_OG_IMAGE },
+      ],
+      links: [{ rel: "canonical", href: canonical }],
+      scripts: [
+        { type: "application/ld+json", children: JSON.stringify(breadcrumbs) },
+      ],
+    };
+  },
   component: Cats,
 });
 

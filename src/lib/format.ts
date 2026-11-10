@@ -6,9 +6,10 @@ export function formatCategoryName(name?: string | null): string {
 /** Formats a phone number cleanly without duplicate pluses (e.g. ++91 -> +91 8446418374) */
 export function formatPhone(phone?: string | null): string {
   if (!phone) return "+91 8446418374";
-  const trimmed = phone.trim().replace(/^\++/, "");
+  const stripped = phone.replace(/^support:\s*/i, "").trim();
+  const trimmed = stripped.replace(/^\++/, "").replace(/\+{2,}/g, "+").trim();
   if (trimmed.startsWith("91 ") || trimmed.startsWith("91-")) {
-    return `+${trimmed}`;
+    return `+91 ${trimmed.slice(3).trim()}`;
   }
   if (trimmed.startsWith("91") && trimmed.length === 12) {
     return `+91 ${trimmed.slice(2)}`;
@@ -16,7 +17,7 @@ export function formatPhone(phone?: string | null): string {
   if (trimmed.length === 10) {
     return `+91 ${trimmed}`;
   }
-  return `+${trimmed}`;
+  return trimmed.startsWith("+") ? trimmed : `+${trimmed}`;
 }
 
 export const CANCEL_RULE =

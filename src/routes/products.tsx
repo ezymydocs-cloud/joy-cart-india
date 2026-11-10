@@ -1,6 +1,7 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { z } from "zod";
 import { ProductListing, type ListingFilters } from "@/components/site/ProductListing";
+import { getCanonicalUrl, DEFAULT_OG_IMAGE, SITE_URL } from "@/lib/seo";
 
 const search = z.object({
   q: z.string().optional(),
@@ -16,18 +17,54 @@ const search = z.object({
 
 export const Route = createFileRoute("/products")({
   validateSearch: search,
-  head: () => ({
-    meta: [
-      { title: "Shop All Toys & Games | TrendyToyz India" },
-      {
-        name: "description",
-        content:
-          "Browse TrendyToyz catalog: soft toys, diecast vehicles, building blocks, and games with advanced filters and fast pan-India delivery.",
-      },
-      { property: "og:title", content: "Shop All Toys | TrendyToyz" },
-      { property: "og:description", content: "Filter toys by category, price, discount, and stock." },
-    ],
-  }),
+  head: () => {
+    // Canonical points strictly to clean base URL /products, ignoring sort/filter query params
+    const canonical = getCanonicalUrl("/products");
+    const title = "All Toys & Games Collection | Buy Online India | TrendyToyz";
+    const description =
+      "Browse our complete catalog of 100% certified child-safe toys, diecast cars, building blocks, and games. Fast pan-India delivery & best prices.";
+
+    const collectionSchema = {
+      "@context": "https://schema.org",
+      "@type": "CollectionPage",
+      name: "All Toys & Games Collection",
+      url: canonical,
+      description,
+    };
+
+    const breadcrumbSchema = {
+      "@context": "https://schema.org",
+      "@type": "BreadcrumbList",
+      itemListElement: [
+        { "@type": "ListItem", position: 1, name: "Home", item: `${SITE_URL}/` },
+        { "@type": "ListItem", position: 2, name: "Toys", item: canonical },
+      ],
+    };
+
+    return {
+      meta: [
+        { title },
+        { name: "description", content: description },
+        // Open Graph
+        { property: "og:type", content: "website" },
+        { property: "og:site_name", content: "TrendyToyz" },
+        { property: "og:title", content: title },
+        { property: "og:description", content: description },
+        { property: "og:url", content: canonical },
+        { property: "og:image", content: DEFAULT_OG_IMAGE },
+        // Twitter
+        { name: "twitter:card", content: "summary_large_image" },
+        { name: "twitter:title", content: title },
+        { name: "twitter:description", content: description },
+        { name: "twitter:image", content: DEFAULT_OG_IMAGE },
+      ],
+      links: [{ rel: "canonical", href: canonical }],
+      scripts: [
+        { type: "application/ld+json", children: JSON.stringify(collectionSchema) },
+        { type: "application/ld+json", children: JSON.stringify(breadcrumbSchema) },
+      ],
+    };
+  },
   component: Products,
 });
 

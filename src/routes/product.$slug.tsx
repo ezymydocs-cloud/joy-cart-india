@@ -23,16 +23,94 @@ import { discountPct, inr } from "@/lib/format";
 import { useCart } from "@/lib/cart";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
+import {
+  extractProductSeo,
+  getCanonicalUrl,
+  getProductSchema,
+  getProductBreadcrumbSchema,
+  DEFAULT_OG_IMAGE,
+  SITE_URL,
+} from "@/lib/seo";
 
 export const Route = createFileRoute("/product/$slug")({
-  head: () => ({
-    meta: [
-      { title: "Toy Details | TrendyToyz" },
-      { name: "description", content: "See price, details and package contents at TrendyToyz." },
-      { property: "og:title", content: "Toy Details | TrendyToyz" },
-      { property: "og:description", content: "See price, details and package contents at TrendyToyz." },
-    ],
-  }),
+  loader: async ({ params }) => {
+    const { data } = await supabase
+      .from("products")
+      .select(PRODUCT_SELECT)
+      .eq("slug", params.slug)
+      .maybeSingle();
+    return { product: data as unknown as Product | null };
+  },
+  head: ({ loaderData, params }) => {
+    const p = loaderData?.product;
+    const seo = extractProductSeo(p);
+    const canonical = getCanonicalUrl(`/product/${params.slug}`);
+
+    const imgs = p ? sortedImages(p.product_images) : [];
+    const firstImg = imgs[0]?.url ? resolveImageUrl(imgs[0].url) : DEFAULT_OG_IMAGE;
+    const ogImg = firstImg.startsWith("http")
+      ? firstImg
+      : `${SITE_URL}${firstImg.startsWith("/") ? "" : "/"}${firstImg}`;
+
+    const productSchema = p
+      ? getProductSchema({
+          name: p.name,
+          slug: p.slug,
+          price: p.price,
+          mrp: p.mrp,
+          sku: p.sku,
+          brand: p.brand,
+          description: seo.description,
+          short_description: p.short_description,
+          stock: p.stock,
+          images: imgs.map((im) => resolveImageUrl(im.url)),
+        })
+      : null;
+
+    const breadcrumbSchema = p
+      ? getProductBreadcrumbSchema({
+          name: p.name,
+          slug: p.slug,
+          categoryName: p.categories?.name,
+          categorySlug: p.categories?.slug,
+        })
+      : null;
+
+    const scripts = [];
+    if (productSchema) {
+      scripts.push({
+        type: "application/ld+json",
+        children: JSON.stringify(productSchema),
+      });
+    }
+    if (breadcrumbSchema) {
+      scripts.push({
+        type: "application/ld+json",
+        children: JSON.stringify(breadcrumbSchema),
+      });
+    }
+
+    return {
+      meta: [
+        { title: seo.title },
+        { name: "description", content: seo.description },
+        // Open Graph
+        { property: "og:type", content: "product" },
+        { property: "og:site_name", content: "TrendyToyz" },
+        { property: "og:title", content: seo.title },
+        { property: "og:description", content: seo.description },
+        { property: "og:url", content: canonical },
+        { property: "og:image", content: ogImg },
+        // Twitter
+        { name: "twitter:card", content: "summary_large_image" },
+        { name: "twitter:title", content: seo.title },
+        { name: "twitter:description", content: seo.description },
+        { name: "twitter:image", content: ogImg },
+      ],
+      links: [{ rel: "canonical", href: canonical }],
+      scripts,
+    };
+  },
   component: ProductPage,
 });
 
@@ -51,8 +129,10 @@ function ProductPage() {
     setActive(0);
   }, [selectedVariantId]);
 
+  const loaderData = Route.useLoaderData();
   const { data: p, isLoading, isError, refetch } = useQuery({
     queryKey: ["product", slug],
+    initialData: loaderData?.product || undefined,
     staleTime: 1000 * 60 * 5, // 5 mins fresh
     retry: 3,
     retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 10000),
@@ -254,10 +334,12 @@ function ProductPage() {
           >
             <img
               src={img}
-              alt={p.name}
+              alt={`${p.name} - 100% Certified Child-Safe Toy at TrendyToyz`}
               className="size-full object-contain transition-transform duration-500 group-hover:scale-105"
               width={800}
               height={800}
+              loading="eager"
+              fetchPriority="high"
               onError={(e) => {
                 (e.currentTarget as HTMLImageElement).src = "/images/teddy.jpg";
               }}
@@ -285,7 +367,7 @@ function ProductPage() {
                 >
                   <img
                     src={im.url}
-                    alt=""
+                    alt={`${p.name} view ${i + 1}`}
                     className="size-full object-contain"
                     loading="lazy"
                     width={72}

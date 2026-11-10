@@ -146,8 +146,9 @@ export default async function handler(req, res) {
     // 2. Active Categories
     for (const c of categories) {
       if (!c.slug) continue;
+      const cleanSlug = c.slug === "puzzel-blocks" ? "puzzle-blocks" : c.slug;
       const mod = formatDate(c.created_at || today);
-      xml += `  <url>\n    <loc>${escapeXml(`${BASE_URL}/category/${c.slug}`)}</loc>\n    <lastmod>${mod}</lastmod>\n    <changefreq>weekly</changefreq>\n    <priority>0.8</priority>\n  </url>\n`;
+      xml += `  <url>\n    <loc>${escapeXml(`${BASE_URL}/category/${cleanSlug}`)}</loc>\n    <lastmod>${mod}</lastmod>\n    <changefreq>weekly</changefreq>\n    <priority>0.8</priority>\n  </url>\n`;
     }
 
     // 3. Active Products

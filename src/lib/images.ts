@@ -11,6 +11,7 @@ export const CATEGORY_FALLBACK_IMAGES: Record<string, string> = {
   "cars-vehicles": "/images/car.jpg",
   "die-cast-models": "/images/car.jpg",
   "building-blocks": "/images/blocks.jpg",
+  "puzzle-blocks": "/images/blocks.jpg",
   "puzzel-blocks": "/images/blocks.jpg",
   "learning-toys": "/images/rocket.jpg",
   "electronic-toys": "/images/banner.jpg",

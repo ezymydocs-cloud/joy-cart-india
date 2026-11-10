@@ -52,6 +52,8 @@ const blank = {
   age_group: "",
   brand: "",
   tags: "",
+  seo_title: "",
+  seo_description: "",
 };
 
 function EditProduct() {
@@ -88,6 +90,23 @@ function EditProduct() {
   useEffect(() => {
     const p = prod.data;
     if (!p) return;
+    let customSeoTitle = (p as any).seo_title || "";
+    let customSeoDesc = (p as any).seo_description || "";
+    const cleanTags: string[] = [];
+    if (Array.isArray(p.tags)) {
+      for (const t of p.tags) {
+        if (typeof t === "string") {
+          if (t.startsWith("seo_title:") && !customSeoTitle) {
+            customSeoTitle = t.slice("seo_title:".length).trim();
+          } else if (t.startsWith("seo_desc:") && !customSeoDesc) {
+            customSeoDesc = t.slice("seo_desc:".length).trim();
+          } else {
+            cleanTags.push(t);
+          }
+        }
+      }
+    }
+
     setF({
       name: p.name,
       category_id: p.category_id ?? "",
@@ -105,7 +124,9 @@ function EditProduct() {
       in_package: p.in_package ?? "",
       age_group: p.age_group ?? "",
       brand: p.brand ?? "",
-      tags: (p.tags ?? []).join(", "),
+      tags: cleanTags.join(", "),
+      seo_title: customSeoTitle,
+      seo_description: customSeoDesc,
     });
     setImgs(sortedImages(p).map((i) => ({ url: i.url, storage_path: i.storage_path })));
 
@@ -218,6 +239,18 @@ function EditProduct() {
       }
     }
 
+    const finalTags = f.tags
+      .split(",")
+      .map((t) => t.trim())
+      .filter((t) => t && !t.startsWith("seo_title:") && !t.startsWith("seo_desc:"));
+
+    if (f.seo_title.trim()) {
+      finalTags.push(`seo_title:${f.seo_title.trim()}`);
+    }
+    if (f.seo_description.trim()) {
+      finalTags.push(`seo_desc:${f.seo_description.trim()}`);
+    }
+
     setBusy(true);
     const payload = {
       name: f.name.trim(),
@@ -236,10 +269,7 @@ function EditProduct() {
       in_package: f.in_package.trim() || null,
       age_group: f.age_group.trim() || null,
       brand: f.brand.trim() || null,
-      tags: f.tags
-        .split(",")
-        .map((t) => t.trim())
-        .filter(Boolean),
+      tags: finalTags,
       variants: validVariants,
     };
 
@@ -742,6 +772,43 @@ function EditProduct() {
                 onChange={set("tags")}
                 className="mt-1"
               />
+            </div>
+          </section>
+
+          {/* Search Engine Optimization (SEO) */}
+          <section className="space-y-3 rounded-2xl bg-background p-5 shadow-xs border border-border/70">
+            <div className="flex items-center justify-between">
+              <h2 className="text-base font-bold text-foreground">Search Engine Optimization (SEO)</h2>
+              <span className="text-xs text-muted-foreground">Optional</span>
+            </div>
+            <p className="text-xs text-muted-foreground">
+              Customize how this toy appears on Google search results and social share previews.
+            </p>
+            <div>
+              <Label>Custom SEO Title</Label>
+              <Input
+                placeholder={f.name ? `${f.name} | Buy Online India | TrendyToyz` : "Toy Name | Buy Online India | TrendyToyz"}
+                value={f.seo_title}
+                onChange={set("seo_title")}
+                className="mt-1"
+              />
+              <p className="text-[11px] text-muted-foreground mt-0.5">
+                Leave blank to automatically use: <span className="font-semibold">{f.name || "Toy"} | Buy Online India | TrendyToyz</span>
+              </p>
+            </div>
+            <div>
+              <Label>Custom SEO Description (150–160 chars)</Label>
+              <Textarea
+                rows={3}
+                placeholder="Buy this certified child-safe toy online at TrendyToyz. 100% non-toxic, pan-India fast shipping & same-day returns."
+                value={f.seo_description}
+                onChange={set("seo_description")}
+                className="mt-1"
+              />
+              <p className="text-[11px] text-muted-foreground mt-0.5 flex justify-between">
+                <span>Leave blank to use auto-generated product summary with price and features.</span>
+                <span>{f.seo_description.length} chars</span>
+              </p>
             </div>
           </section>
 
