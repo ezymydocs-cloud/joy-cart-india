@@ -8,6 +8,7 @@ import { PHONE_RE } from "@/lib/format";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { BrandLogo } from "@/components/site/BrandLogo";
 
 export const Route = createFileRoute("/auth")({
   validateSearch: z.object({ redirect: z.string().optional() }),
@@ -141,7 +142,7 @@ function AuthPage() {
       <div className="rounded-3xl border bg-card p-6 sm:p-8 shadow-xs">
         <div className="text-center">
           <Link to="/" className="inline-block">
-            <img src="/logo.svg" alt="TrendyToyz" className="mx-auto h-12 w-auto" />
+            <BrandLogo className="mx-auto h-12 w-auto" />
           </Link>
         </div>
 

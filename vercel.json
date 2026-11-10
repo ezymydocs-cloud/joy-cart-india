@@ -24,6 +24,10 @@
     {
       "source": "/sitemap.xml",
       "destination": "/api/sitemap"
+    },
+    {
+      "source": "/api/public/img/:bucket/:path*",
+      "destination": "https://hhrgtxpupgzjzstfzclw.supabase.co/storage/v1/object/public/:bucket/:path*"
     }
   ],
   "headers": [

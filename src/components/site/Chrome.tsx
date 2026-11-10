@@ -33,6 +33,7 @@ import {
 import { TopAnnouncementBar } from "./TopAnnouncementBar";
 import { CartDrawer } from "./CartDrawer";
 import { MobileBottomNav } from "./MobileBottomNav";
+import { BrandLogo } from "./BrandLogo";
 
 export function SiteHeader() {
   const { count } = useCart();
@@ -68,10 +69,9 @@ export function SiteHeader() {
 
           {/* Brand Logo: TrendyToyz */}
           <Link to="/" className="flex items-center gap-2 shrink-0 group">
-            <img
-              src="/logo.svg"
-              alt="TrendyToyz"
+            <BrandLogo
               className="h-9 sm:h-11 w-auto transition-transform group-hover:scale-105"
+              variant="header"
             />
           </Link>
 
@@ -321,7 +321,7 @@ export function SiteFooter() {
         {/* Brand Information */}
         <div>
           <div className="flex items-center gap-2">
-            <img src="/logo.svg" alt="TrendyToyz" className="h-10 w-auto" />
+            <BrandLogo className="h-10 w-auto" variant="footer" />
           </div>
           <p className="mt-3 text-xs leading-relaxed text-primary-foreground/75">
             India's favorite online toy destination. We deliver premium, child-safe, and educational toys that inspire imagination and spark smiles.

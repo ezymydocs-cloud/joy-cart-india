@@ -28,6 +28,7 @@ import {
   getCanonicalUrl,
   getProductSchema,
   getProductBreadcrumbSchema,
+  toAbsolutePublicImageUrl,
   DEFAULT_OG_IMAGE,
   SITE_URL,
 } from "@/lib/seo";
@@ -46,11 +47,23 @@ export const Route = createFileRoute("/product/$slug")({
     const seo = extractProductSeo(p);
     const canonical = getCanonicalUrl(`/product/${params.slug}`);
 
-    const imgs = p ? sortedImages(p.product_images) : [];
-    const firstImg = imgs[0]?.url ? resolveImageUrl(imgs[0].url) : DEFAULT_OG_IMAGE;
-    const ogImg = firstImg.startsWith("http")
-      ? firstImg
-      : `${SITE_URL}${firstImg.startsWith("/") ? "" : "/"}${firstImg}`;
+    // Robust image extraction: p is passed to sortedImages(p)
+    const imgs = p ? sortedImages(p) : [];
+    const rawFirstImg =
+      imgs[0]?.url ||
+      (Array.isArray(p?.product_images) && p.product_images.length > 0
+        ? p.product_images[0]?.url
+        : null);
+
+    // Guaranteed absolute public URL (direct Supabase storage CDN)
+    const ogImg = toAbsolutePublicImageUrl(rawFirstImg, DEFAULT_OG_IMAGE);
+
+    const productImages =
+      imgs.length > 0
+        ? imgs.map((im) => toAbsolutePublicImageUrl(im.url))
+        : Array.isArray(p?.product_images) && p.product_images.length > 0
+        ? p.product_images.map((im: any) => toAbsolutePublicImageUrl(im.url))
+        : [ogImg];
 
     const productSchema = p
       ? getProductSchema({
@@ -63,7 +76,7 @@ export const Route = createFileRoute("/product/$slug")({
           description: seo.description,
           short_description: p.short_description,
           stock: p.stock,
-          images: imgs.map((im) => resolveImageUrl(im.url)),
+          images: productImages,
         })
       : null;
 

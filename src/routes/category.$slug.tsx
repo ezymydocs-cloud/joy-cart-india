@@ -8,6 +8,7 @@ import {
   getCanonicalUrl,
   getCategorySchema,
   getCategoryBreadcrumbSchema,
+  toAbsolutePublicImageUrl,
   DEFAULT_OG_IMAGE,
   SITE_URL,
 } from "@/lib/seo";
@@ -39,19 +40,18 @@ export const Route = createFileRoute("/category/$slug")({
     const canonical = getCanonicalUrl(`/category/${slug}`);
     const catName = cat?.name ? formatCategoryName(cat.name) : formatCategoryName(slug.replace(/-/g, " "));
 
+    const ogImage = toAbsolutePublicImageUrl(cat?.image_url, DEFAULT_OG_IMAGE);
+
     const collectionSchema = getCategorySchema({
       name: catName,
       slug,
       description: seo.richText,
+      image_url: ogImage,
     });
     const breadcrumbSchema = getCategoryBreadcrumbSchema({
       name: catName,
       slug,
     });
-
-    const ogImage = cat?.image_url && cat.image_url.startsWith("http")
-      ? cat.image_url
-      : DEFAULT_OG_IMAGE;
 
     return {
       meta: [

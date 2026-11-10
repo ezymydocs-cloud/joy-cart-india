@@ -8,6 +8,8 @@ export const SITE_NAME = "TrendyToyz";
 export const DEFAULT_OG_IMAGE = "https://trendytoyz.in/android-chrome-512x512.png";
 export const BRAND_PHONE = "+91-8446418374";
 export const BRAND_EMAIL = "trendytoyz.info@gmail.com";
+export const SUPABASE_STORAGE_PUBLIC =
+  "https://hhrgtxpupgzjzstfzclw.supabase.co/storage/v1/object/public";
 
 /**
  * Returns a clean canonical URL without query parameters (sort, min, max, etc.)
@@ -16,6 +18,36 @@ export function getCanonicalUrl(pathname: string): string {
   const cleanPath = pathname.split("?")[0].split("#")[0];
   const normalized = cleanPath === "/" ? "" : cleanPath.replace(/\/+$/, "");
   return `${SITE_URL}${normalized || "/"}`;
+}
+
+/**
+ * Converts any relative or local image path to an absolute, public URL
+ * guaranteed to resolve cleanly for Googlebot, Twitter, and Open Graph scrapers.
+ */
+export function toAbsolutePublicImageUrl(
+  url?: string | null,
+  fallback = DEFAULT_OG_IMAGE
+): string {
+  if (!url || !url.trim()) return fallback;
+  const trimmed = url.trim();
+
+  // If already absolute Supabase storage URL or full web URL
+  if (trimmed.startsWith("https://") || trimmed.startsWith("http://")) {
+    return trimmed;
+  }
+
+  // Convert `/api/public/img/bucket/path` -> direct Supabase public CDN URL
+  if (trimmed.startsWith("/api/public/img/")) {
+    const sub = trimmed.replace(/^\/api\/public\/img\//, "");
+    return `${SUPABASE_STORAGE_PUBLIC}/${sub}`;
+  }
+
+  // If relative path like `/images/teddy.jpg` -> prefix SITE_URL
+  if (trimmed.startsWith("/")) {
+    return `${SITE_URL}${trimmed}`;
+  }
+
+  return `${SITE_URL}/${trimmed}`;
 }
 
 /**
@@ -82,6 +114,7 @@ export function extractCategorySeo(category?: {
 
 /**
  * Extracts SEO title & description for a product with fallback
+ * Intelligently includes "COD" ONLY if product.cod_enabled is not false
  */
 export function extractProductSeo(p?: {
   name?: string;
@@ -94,6 +127,7 @@ export function extractProductSeo(p?: {
   seo_title?: string | null;
   seo_description?: string | null;
   brand?: string | null;
+  cod_enabled?: boolean | null;
 } | null) {
   if (!p) {
     return {
@@ -126,11 +160,22 @@ export function extractProductSeo(p?: {
     customTitle ||
     `${p.name} | Buy Online India | TrendyToyz`;
 
-  // 150-160 characters target description
-  const defaultDesc =
+  // Only mention COD when cod_enabled is true (or not explicitly false)
+  const isCodAvailable = p.cod_enabled !== false;
+  const deliveryPolicyText = isCodAvailable
+    ? "pan-India delivery, COD & same-day return"
+    : "pan-India delivery & same-day return policy";
+
+  // Target 150-160 characters description
+  let defaultDesc =
     p.short_description && p.short_description.length >= 80 && p.short_description.length <= 165
       ? p.short_description
-      : `Buy ${p.name} online at TrendyToyz${priceStr}. 100% certified child-safe, non-toxic premium toy with pan-India delivery, COD & same-day return.`;
+      : `Buy ${p.name} online at TrendyToyz${priceStr}. 100% certified child-safe, non-toxic premium toy with ${deliveryPolicyText}.`;
+
+  // If COD is disabled but short_description had COD mentioned, sanitize it
+  if (!isCodAvailable) {
+    defaultDesc = defaultDesc.replace(/\b(cod|cash on delivery)\b/gi, "").replace(/\s+,/g, ",");
+  }
 
   const description = customDesc || defaultDesc;
 
@@ -182,6 +227,7 @@ export function getWebSiteSchema() {
 
 /**
  * Product Schema for Product Pages
+ * Real public image URLs, dynamic availability, and NO hardcoded aggregateRating!
  */
 export function getProductSchema(p: {
   name: string;
@@ -195,6 +241,8 @@ export function getProductSchema(p: {
   stock?: number;
   image?: string | null;
   images?: string[];
+  rating?: number | string | null;
+  review_count?: number | string | null;
 }) {
   const priceVal = Math.round(Number(p.price) || 0);
   const images = Array.isArray(p.images) && p.images.length > 0
@@ -203,14 +251,10 @@ export function getProductSchema(p: {
     ? [p.image]
     : [DEFAULT_OG_IMAGE];
 
-  const fullImages = images.map((img) => {
-    if (img.startsWith("http://") || img.startsWith("https://")) return img;
-    return `${SITE_URL}${img.startsWith("/") ? "" : "/"}${img}`;
-  });
-
+  const fullImages = images.map((img) => toAbsolutePublicImageUrl(img, DEFAULT_OG_IMAGE));
   const inStock = (p.stock ?? 1) > 0;
 
-  return {
+  const schema: Record<string, any> = {
     "@context": "https://schema.org",
     "@type": "Product",
     name: p.name,
@@ -239,12 +283,20 @@ export function getProductSchema(p: {
         name: SITE_NAME,
       },
     },
-    aggregateRating: {
-      "@type": "AggregateRating",
-      ratingValue: "4.8",
-      reviewCount: "24",
-    },
   };
+
+  // Only include aggregateRating if real review count and rating exist in database
+  const count = Number(p.review_count);
+  const rating = Number(p.rating);
+  if (!isNaN(count) && count > 0 && !isNaN(rating) && rating > 0) {
+    schema.aggregateRating = {
+      "@type": "AggregateRating",
+      ratingValue: String(rating),
+      reviewCount: String(count),
+    };
+  }
+
+  return schema;
 }
 
 /**
@@ -303,8 +355,13 @@ export function getProductBreadcrumbSchema(p: {
 /**
  * CollectionPage Schema for Category Pages
  */
-export function getCategorySchema(cat: { name: string; slug: string; description?: string | null }) {
-  return {
+export function getCategorySchema(cat: {
+  name: string;
+  slug: string;
+  description?: string | null;
+  image_url?: string | null;
+}) {
+  const schema: Record<string, any> = {
     "@context": "https://schema.org",
     "@type": "CollectionPage",
     name: `${cat.name} Toys Collection`,
@@ -313,6 +370,12 @@ export function getCategorySchema(cat: { name: string; slug: string; description
       cat.description ||
       `Shop 100% certified child-safe ${cat.name} toys online in India at TrendyToyz.`,
   };
+
+  if (cat.image_url) {
+    schema.image = toAbsolutePublicImageUrl(cat.image_url);
+  }
+
+  return schema;
 }
 
 /**
