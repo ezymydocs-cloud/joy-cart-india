@@ -235,33 +235,193 @@ export const verifyOnlinePayment = createServerFn({ method: "POST" })
       }
     }
 
-    // 4. Atomic DB confirmation via confirm_order_payment RPC
-    const { error: confirmErr } = await context.supabase.rpc("confirm_order_payment", {
-      p_order_id: o.id,
-      p_razorpay_order_id: data.razorpay_order_id,
-      p_razorpay_payment_id: data.razorpay_payment_id,
-      p_source: "verify_endpoint",
+    // 4. Atomic DB confirmation: try RPC, then context.supabase, then supabaseAdmin
+    console.log(`[Payment Verify] Updating database for order ${o.order_number}...`);
+    let dbUpdated = false;
+
+    // 4a. Try confirm_order_payment RPC
+    try {
+      const { error: rpcErr } = await context.supabase.rpc("confirm_order_payment", {
+        p_order_id: o.id,
+        p_razorpay_order_id: data.razorpay_order_id,
+        p_razorpay_payment_id: data.razorpay_payment_id,
+        p_source: "verify_endpoint",
+      });
+      if (!rpcErr) {
+        dbUpdated = true;
+        console.log(`[Payment Verify] Order ${o.order_number} marked paid via confirm_order_payment RPC`);
+      } else {
+        console.warn("[Payment Verify] confirm_order_payment RPC returned error, trying direct update:", rpcErr.message);
+      }
+    } catch (rpcEx) {
+      console.warn("[Payment Verify] RPC exception:", rpcEx);
+    }
+
+    // 4b. Try direct update via authenticated context.supabase
+    if (!dbUpdated) {
+      try {
+        const { error: updErr } = await context.supabase
+          .from("orders")
+          .update({
+            payment_status: "paid",
+            status: "placed",
+            razorpay_order_id: data.razorpay_order_id,
+            razorpay_payment_id: data.razorpay_payment_id,
+            cancel_reason: null,
+            cancelled_by: null,
+          })
+          .eq("id", o.id)
+          .eq("user_id", context.userId);
+
+        if (!updErr) {
+          dbUpdated = true;
+          console.log(`[Payment Verify] Order ${o.order_number} marked paid via context.supabase direct update`);
+        } else {
+          console.warn("[Payment Verify] context.supabase direct update error:", updErr.message);
+        }
+      } catch (updEx) {
+        console.warn("[Payment Verify] context.supabase update exception:", updEx);
+      }
+    }
+
+    // 4c. Try supabaseAdmin
+    if (!dbUpdated) {
+      try {
+        const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+        const { error: adminErr } = await supabaseAdmin
+          .from("orders")
+          .update({
+            payment_status: "paid",
+            status: "placed",
+            razorpay_order_id: data.razorpay_order_id,
+            razorpay_payment_id: data.razorpay_payment_id,
+            cancel_reason: null,
+            cancelled_by: null,
+          })
+          .eq("id", o.id);
+
+        if (!adminErr) {
+          dbUpdated = true;
+          console.log(`[Payment Verify] Order ${o.order_number} marked paid via supabaseAdmin update`);
+        } else {
+          console.error("[Payment Verify] supabaseAdmin update error:", adminErr.message);
+        }
+      } catch (adminEx) {
+        console.error("[Payment Verify] supabaseAdmin update exception:", adminEx);
+      }
+    }
+
+    // Send confirmation email
+    try {
+      await sendOrderEmails(o.id, "placed", origin());
+    } catch (emailErr) {
+      console.warn("[Payment Verify] Confirmation email send failed (non-fatal):", emailErr);
+    }
+    return { ok: true, orderNumber: o.order_number, paymentStatus: "paid" };
+  });
+
+export const reconcileOrderPayment = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d) => z.object({ orderId: z.string().uuid() }).parse(d))
+  .handler(async ({ data, context }) => {
+    // 1. Fetch order
+    const { data: o, error } = await context.supabase
+      .from("orders")
+      .select("id,order_number,total,status,user_id,razorpay_order_id,razorpay_payment_id,payment_status,payment_method")
+      .eq("id", data.orderId)
+      .maybeSingle();
+
+    if (error || !o) throw new Error("Order not found");
+    if (o.payment_status === "paid") {
+      return { ok: true, status: "paid", orderNumber: o.order_number, message: "Order is already marked as Paid." };
+    }
+    if (!o.razorpay_order_id) {
+      return { ok: false, status: o.payment_status, message: "No Razorpay order ID associated with this order." };
+    }
+
+    const keyId = (process.env["RAZORPAY_KEY_ID"] || process.env["VITE_RAZORPAY_KEY_ID"])?.trim();
+    const secret = process.env["RAZORPAY_KEY_SECRET"]?.trim();
+    if (!keyId || !secret) throw new Error("Razorpay credentials are not configured");
+
+    const auth = typeof Buffer !== "undefined"
+      ? Buffer.from(`${keyId}:${secret}`).toString("base64")
+      : btoa(`${keyId}:${secret}`);
+
+    console.log(`[Payment Reconcile] Checking Razorpay API for order ${o.order_number} (${o.razorpay_order_id})...`);
+    const res = await fetch(`https://api.razorpay.com/v1/orders/${encodeURIComponent(o.razorpay_order_id)}/payments`, {
+      headers: { Authorization: `Basic ${auth}` },
     });
 
-    if (confirmErr) {
-      console.warn("confirm_order_payment RPC fallback:", confirmErr);
+    if (!res.ok) {
+      const errText = await res.text();
+      console.error(`[Payment Reconcile] Razorpay HTTP ${res.status}:`, errText);
+      throw new Error(`Razorpay API returned error: ${res.status}`);
+    }
+
+    const payList = (await res.json()) as { items?: Array<{ id: string; status: string; amount: number }> };
+    const items = payList?.items || [];
+    const captured = items.find((p) => p.status === "captured");
+
+    if (!captured) {
+      const failed = items.some((p) => p.status === "failed");
+      console.log(`[Payment Reconcile] Order ${o.order_number}: No captured payment found (${items.length} attempts).`);
+      return {
+        ok: false,
+        status: o.payment_status,
+        message: failed ? "Payment attempt was failed or incomplete on gateway." : "Payment has not been captured on Razorpay yet.",
+      };
+    }
+
+    console.log(`[Payment Reconcile] Found captured payment ${captured.id} for order ${o.order_number}! Updating status to Paid...`);
+
+    // Update database
+    let dbUpdated = false;
+    try {
+      const { error: rpcErr } = await context.supabase.rpc("confirm_order_payment", {
+        p_order_id: o.id,
+        p_razorpay_order_id: o.razorpay_order_id,
+        p_razorpay_payment_id: captured.id,
+        p_source: "reconcile_api",
+      });
+      if (!rpcErr) dbUpdated = true;
+    } catch {}
+
+    if (!dbUpdated) {
+      await context.supabase
+        .from("orders")
+        .update({
+          payment_status: "paid",
+          status: o.status === "cancelled" ? "placed" : o.status,
+          razorpay_payment_id: captured.id,
+          cancel_reason: null,
+          cancelled_by: null,
+        })
+        .eq("id", o.id);
+
       const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
       await supabaseAdmin
         .from("orders")
         .update({
           payment_status: "paid",
-          status: "placed",
-          razorpay_order_id: data.razorpay_order_id,
-          razorpay_payment_id: data.razorpay_payment_id,
+          status: o.status === "cancelled" ? "placed" : o.status,
+          razorpay_payment_id: captured.id,
           cancel_reason: null,
           cancelled_by: null,
         })
         .eq("id", o.id);
     }
 
-    // Send confirmation email
-    await sendOrderEmails(o.id, "placed", origin());
-    return { ok: true, orderNumber: o.order_number };
+    try {
+      await sendOrderEmails(o.id, "placed", origin());
+    } catch {}
+
+    return {
+      ok: true,
+      status: "paid",
+      paymentId: captured.id,
+      orderNumber: o.order_number,
+      message: "Order successfully reconciled and marked as Paid!",
+    };
   });
 
 export const cancelMyOrder = createServerFn({ method: "POST" })

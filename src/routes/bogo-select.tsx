@@ -219,11 +219,15 @@ function BogoSelectPage() {
 
           {/* Purchased Item Summary Box */}
           <div className="flex items-center gap-3 rounded-2xl border bg-card p-3.5 shadow-xs shrink-0 md:max-w-xs">
-            <img
-              src={mainImage(parent)}
-              alt={parent.name}
-              className="size-16 rounded-xl object-cover border"
-            />
+            <div className="flex size-16 shrink-0 items-center justify-center overflow-hidden rounded-xl border bg-white p-1">
+              <img
+                src={mainImage(parent)}
+                alt={parent.name}
+                className="size-full object-contain"
+                width={64}
+                height={64}
+              />
+            </div>
             <div className="text-xs">
               <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
                 Purchased Item
@@ -313,12 +317,14 @@ function BogoSelectPage() {
                 className="group relative flex flex-col overflow-hidden rounded-2xl border-2 border-border/80 bg-card transition duration-300 hover:-translate-y-1 hover:border-emerald-500/50 hover:shadow-lg"
               >
                 {/* Product Image & Badges */}
-                <div className="relative aspect-square overflow-hidden bg-muted/40">
+                <div className="relative flex aspect-square items-center justify-center overflow-hidden bg-white p-2">
                   <img
                     src={mainImage(p)}
                     alt={p.name}
-                    className="size-full object-cover transition-transform duration-500 group-hover:scale-105"
+                    className="size-full object-contain p-1 transition-transform duration-500 group-hover:scale-105"
                     loading="lazy"
+                    width={300}
+                    height={300}
                   />
                   {/* FREE Badge */}
                   <span className="absolute left-2.5 top-2.5 rounded-full bg-emerald-600 px-2.5 py-0.5 text-[11px] font-extrabold text-white shadow-xs">

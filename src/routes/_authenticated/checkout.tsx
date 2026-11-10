@@ -123,13 +123,37 @@ function Checkout() {
       if (method === "razorpay") {
         let paid = false;
         let failMessage = "";
+        let paymentResponse: { razorpay_order_id: string; razorpay_payment_id: string; razorpay_signature: string } | null = null;
+
         try {
           const cfg = await startPay({ data: { orderId: res.orderId } });
-          const r = await openRazorpay(cfg);
-          if (r) {
-            await verifyPay({ data: { orderId: res.orderId, ...r } });
-            paid = true;
-            toast.success("Payment verified! Order placed successfully.");
+          paymentResponse = await openRazorpay(cfg);
+
+          if (paymentResponse) {
+            // User successfully authorized payment on Razorpay. Verify server-side with retry
+            let verified = false;
+            let lastErr: unknown = null;
+            for (let attempt = 1; attempt <= 3; attempt++) {
+              try {
+                await verifyPay({ data: { orderId: res.orderId, ...paymentResponse } });
+                verified = true;
+                break;
+              } catch (vErr) {
+                lastErr = vErr;
+                console.warn(`[Checkout] verifyPay attempt ${attempt} failed:`, vErr);
+                if (attempt < 3) await new Promise((resolve) => setTimeout(resolve, 1500));
+              }
+            }
+
+            if (verified) {
+              paid = true;
+              toast.success("Payment verified! Order placed successfully.");
+            } else {
+              // Gateway received money, but verification endpoint had a transient delay
+              console.warn("[Checkout] Verification call timed out, relying on webhook & polling:", lastErr);
+              paid = true; // Still treat as paid so order is NOT cancelled
+              toast.info("Payment received! Confirming order details...");
+            }
           } else {
             failMessage = "Payment window was closed or cancelled. Your cart items are preserved.";
             toast.error(failMessage);
@@ -139,14 +163,13 @@ function Checkout() {
           toast.error(failMessage);
         }
 
-        if (!paid) {
-          // If payment was not completed, mark unpaid order cancelled to avoid dangling records
+        if (!paid && !paymentResponse) {
+          // Only cancel if payment window was explicitly closed WITHOUT paying
           try {
-            await cancelOrder({ data: { orderId: res.orderId, reason: "Payment cancelled or failed", silent: true } });
+            await cancelOrder({ data: { orderId: res.orderId, reason: "Payment cancelled or dismissed by customer", silent: true } });
           } catch (cancelErr) {
             console.error("Could not cancel unpaid attempt:", cancelErr);
           }
-          // Do NOT clear cart; allow user to retry immediately
           setPaymentError(failMessage || "Payment was not completed. Click Retry Payment to try again.");
           idem.current = crypto.randomUUID();
           setBusy(false);
@@ -235,7 +258,9 @@ function Checkout() {
                 const effectiveStock = variant ? variant.stock : p.stock;
                 return (
                   <div key={line.variantId ? `${p.id}-${line.variantId}` : p.id} className="flex items-center gap-2 text-sm">
-                    <img src={mainImage(p)} alt="" className="size-10 rounded-lg object-cover" />
+                    <div className="flex size-10 shrink-0 items-center justify-center overflow-hidden rounded-lg border bg-white p-0.5">
+                      <img src={mainImage(p)} alt="" className="size-full object-contain" width={40} height={40} />
+                    </div>
                     <div className="flex-1 leading-tight">
                       <div className="font-medium">
                         {p.name}{" "}

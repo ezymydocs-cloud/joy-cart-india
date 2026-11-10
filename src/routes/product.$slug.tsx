@@ -52,6 +52,9 @@ function ProductPage() {
 
   const { data: p, isLoading, isError, refetch } = useQuery({
     queryKey: ["product", slug],
+    staleTime: 1000 * 60 * 5, // 5 mins fresh
+    retry: 3,
+    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 10000),
     queryFn: async () => {
       const { data, error } = await supabase
         .from("products")
@@ -243,13 +246,14 @@ function ProductPage() {
         {/* Left Column: Image Gallery */}
         <div>
           <button
+            type="button"
             onClick={() => setZoom(true)}
-            className="group relative block w-full cursor-zoom-in overflow-hidden rounded-3xl border border-border/80 bg-card shadow-xs"
+            className="group relative flex aspect-square w-full items-center justify-center cursor-zoom-in overflow-hidden rounded-3xl border border-border/80 bg-white p-3 sm:p-5 shadow-xs"
           >
             <img
               src={img}
               alt={p.name}
-              className="aspect-square w-full object-cover transition-transform duration-500 group-hover:scale-105"
+              className="size-full object-contain transition-transform duration-500 group-hover:scale-105"
               width={800}
               height={800}
             />
@@ -267,13 +271,14 @@ function ProductPage() {
             <div className="mt-3 flex gap-2.5 overflow-x-auto pb-1">
               {imgs.map((im, i) => (
                 <button
+                  type="button"
                   key={im.id}
                   onClick={() => setActive(i)}
-                  className={`h-[72px] w-[72px] shrink-0 overflow-hidden rounded-2xl border-2 transition-all ${
+                  className={`flex h-[72px] w-[72px] shrink-0 items-center justify-center overflow-hidden rounded-2xl border-2 bg-white p-1 transition-all ${
                     i === active ? "border-secondary ring-2 ring-secondary/20" : "border-border/80 hover:border-muted-foreground"
                   }`}
                 >
-                  <img src={im.url} alt="" className="size-full object-cover" loading="lazy" />
+                  <img src={im.url} alt="" className="size-full object-contain" loading="lazy" width={72} height={72} />
                 </button>
               ))}
             </div>

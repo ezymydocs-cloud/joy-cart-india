@@ -4,7 +4,7 @@ import { useState } from "react";
 import { toast } from "sonner";
 import { Copy, ExternalLink, FileDown } from "lucide-react";
 import { addressLines, canCustomerCancel, inr, fmtDate, type Address, type OrderStatus } from "@/lib/format";
-import { cancelMyOrder, startOnlinePayment, verifyOnlinePayment } from "@/lib/orders.functions";
+import { cancelMyOrder, startOnlinePayment, verifyOnlinePayment, reconcileOrderPayment } from "@/lib/orders.functions";
 import { openRazorpay } from "@/lib/razorpay";
 import { downloadInvoice } from "@/lib/pdf";
 import { fetchSettings } from "@/lib/catalog";
@@ -22,9 +22,11 @@ export function CustomerOrderView({ id, showRule }: { id: string; showRule?: boo
   const cancel = useServerFn(cancelMyOrder);
   const startPay = useServerFn(startOnlinePayment);
   const verifyPay = useServerFn(verifyOnlinePayment);
+  const reconcilePay = useServerFn(reconcileOrderPayment);
   const [open, setOpen] = useState(false);
   const [reason, setReason] = useState("");
   const [busy, setBusy] = useState(false);
+  const [reconciling, setReconciling] = useState(false);
 
   if (q.isLoading) return <div className="h-64 animate-pulse rounded-2xl bg-muted" />;
   if (q.isError) return <div className="text-center"><p className="font-bold">Couldn't load order.</p><Button className="mt-2" onClick={() => q.refetch()}>Retry</Button></div>;
@@ -52,8 +54,35 @@ export function CustomerOrderView({ id, showRule }: { id: string; showRule?: boo
     try {
       const cfg = await startPay({ data: { orderId: o.id } });
       const r = await openRazorpay(cfg);
-      if (r) { await verifyPay({ data: { orderId: o.id, ...r } }); toast.success("Payment successful"); q.refetch(); }
-    } catch (e) { toast.error(e instanceof Error ? e.message : "Payment failed"); } finally { setBusy(false); }
+      if (r) {
+        await verifyPay({ data: { orderId: o.id, ...r } });
+        toast.success("Payment successful");
+        await q.refetch();
+        qc.invalidateQueries({ queryKey: ["my-orders"] });
+      }
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Payment failed");
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const checkStatus = async () => {
+    setReconciling(true);
+    try {
+      const res = await reconcilePay({ data: { orderId: o.id } });
+      if (res.ok && res.status === "paid") {
+        toast.success(res.message || "Payment verified and order updated to Paid!");
+        await q.refetch();
+        qc.invalidateQueries({ queryKey: ["my-orders"] });
+      } else {
+        toast.info(res.message || "Payment has not been captured yet.");
+      }
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Could not verify payment status");
+    } finally {
+      setReconciling(false);
+    }
   };
 
   return (
@@ -91,9 +120,27 @@ export function CustomerOrderView({ id, showRule }: { id: string; showRule?: boo
       )}
 
       {o.payment_method === "razorpay" && o.payment_status === "pending" && status !== "cancelled" && (
-        <div className="flex flex-wrap items-center justify-between gap-2 rounded-2xl border border-secondary p-4">
-          <span className="font-bold">Online payment pending</span>
-          <Button variant="sun" disabled={busy} onClick={pay}>Pay {inr(o.total)} now</Button>
+        <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-secondary/50 bg-secondary/5 p-4">
+          <div>
+            <span className="font-bold text-foreground">Online Payment Pending</span>
+            <p className="text-xs text-muted-foreground mt-0.5">
+              If your bank account was debited, click below to verify and confirm instantly.
+            </p>
+          </div>
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              disabled={reconciling || busy}
+              onClick={checkStatus}
+              className="text-xs font-semibold"
+            >
+              {reconciling ? "Verifying with Gateway..." : "Check Payment Status"}
+            </Button>
+            <Button variant="sun" size="sm" disabled={busy || reconciling} onClick={pay} className="font-bold">
+              Pay {inr(o.total)} now
+            </Button>
+          </div>
         </div>
       )}
 
@@ -107,7 +154,11 @@ export function CustomerOrderView({ id, showRule }: { id: string; showRule?: boo
           <h2 className="text-lg">Items</h2>
           {items.map((i) => (
             <div key={i.id} className="flex gap-3 text-sm">
-              {i.image_url && <img src={i.image_url} alt="" className="size-12 rounded-lg object-cover" />}
+              {i.image_url && (
+                <div className="flex size-12 shrink-0 items-center justify-center overflow-hidden rounded-lg border bg-white p-0.5">
+                  <img src={i.image_url} alt="" className="size-full object-contain" width={48} height={48} />
+                </div>
+              )}
               <div className="flex-1">{i.product_name}<div className="text-xs text-muted-foreground">{i.quantity} × {inr(i.unit_price)}{Number(i.shipping_charge) > 0 ? ` · Shipping ${inr(i.shipping_charge)}` : ""}</div></div>
               <b>{inr(i.line_total)}</b>
             </div>

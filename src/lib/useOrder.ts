@@ -13,5 +13,15 @@ export function useOrder(id: string) {
       if (o.error) throw o.error;
       return { order: o.data, items: items.data ?? [], history: hist.data ?? [] };
     },
+    // Auto-poll every 2 seconds if payment is pending (for 10 minutes from placement)
+    refetchInterval: (query) => {
+      const o = query.state.data?.order;
+      if (!o) return false;
+      if (o.payment_method === "razorpay" && o.payment_status === "pending" && o.status !== "cancelled") {
+        const diffMs = Date.now() - new Date(o.created_at).getTime();
+        return diffMs < 1000 * 60 * 10 ? 2000 : false;
+      }
+      return false;
+    },
   });
 }

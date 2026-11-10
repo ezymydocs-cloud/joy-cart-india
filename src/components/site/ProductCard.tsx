@@ -89,7 +89,7 @@ export function ProductCard({ p }: { p: Product }) {
         params={{ slug: p.slug }}
         onTouchStart={handleTouchStart}
         onTouchEnd={handleTouchEnd}
-        className="relative block aspect-square w-full overflow-hidden bg-muted/60 select-none"
+        className="relative block aspect-square w-full overflow-hidden bg-white select-none flex items-center justify-center p-2.5"
       >
         {allImages.map((src, i) => (
           <img
@@ -99,7 +99,7 @@ export function ProductCard({ p }: { p: Product }) {
             loading="lazy"
             width={400}
             height={400}
-            className={`absolute inset-0 size-full object-cover transition-all duration-500 ease-out group-hover:scale-105 ${
+            className={`absolute inset-0 size-full object-contain p-2 transition-all duration-500 ease-out group-hover:scale-105 ${
               i === activeIdx ? "opacity-100 z-10" : "opacity-0 z-0 pointer-events-none"
             }`}
           />

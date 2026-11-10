@@ -168,9 +168,9 @@ function Cart() {
                     <Link
                       to="/product/$slug"
                       params={{ slug: p.slug }}
-                      className="h-[88px] w-[88px] shrink-0 overflow-hidden rounded-xl border bg-muted"
+                      className="flex h-[88px] w-[88px] shrink-0 items-center justify-center overflow-hidden rounded-xl border bg-white p-1.5"
                     >
-                      <img src={mainImage(p)} alt={p.name} className="size-full object-cover" />
+                      <img src={mainImage(p)} alt={p.name} className="size-full object-contain" width={88} height={88} loading="lazy" />
                     </Link>
 
                     <div className="flex flex-1 flex-col justify-between">
