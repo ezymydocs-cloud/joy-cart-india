@@ -1,18 +1,72 @@
 import { Link } from "@tanstack/react-router";
 import { ShoppingBag, Star, Check } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { discountPct, inr } from "@/lib/format";
-import { mainImage, type Product } from "@/lib/catalog";
+import { mainImage, sortedImages, type Product } from "@/lib/catalog";
 import { useCart } from "@/lib/cart";
 import { Button } from "@/components/ui/button";
 
 export function ProductCard({ p }: { p: Product }) {
   const { add } = useCart();
   const [justAdded, setJustAdded] = useState(false);
+  const [activeIdx, setActiveIdx] = useState(0);
+  const timerRef = useRef<NodeJS.Timeout | null>(null);
+  const touchStartX = useRef<number | null>(null);
+
   const hasVariants = Array.isArray(p.variants) && p.variants.length > 0;
   const off = discountPct(p.price, p.mrp);
   const out = p.stock <= 0;
+
+  // Gather all unique images for this product
+  const productImgs = sortedImages(p).map((img) => img.url);
+  const allImages = productImgs.length > 0 ? productImgs : [mainImage(p)];
+  const hasMultipleImages = allImages.length > 1;
+
+  // Desktop hover cycling (~1s interval)
+  const handleMouseEnter = () => {
+    if (!hasMultipleImages) return;
+    if (timerRef.current) clearInterval(timerRef.current);
+    timerRef.current = setInterval(() => {
+      setActiveIdx((prev) => (prev + 1) % allImages.length);
+    }, 1000);
+  };
+
+  const handleMouseLeave = () => {
+    if (timerRef.current) {
+      clearInterval(timerRef.current);
+      timerRef.current = null;
+    }
+    setActiveIdx(0);
+  };
+
+  useEffect(() => {
+    return () => {
+      if (timerRef.current) clearInterval(timerRef.current);
+    };
+  }, []);
+
+  // Mobile swipe support
+  const handleTouchStart = (e: React.TouchEvent) => {
+    touchStartX.current = e.touches[0].clientX;
+  };
+
+  const handleTouchEnd = (e: React.TouchEvent) => {
+    if (touchStartX.current === null || !hasMultipleImages) return;
+    const touchEndX = e.changedTouches[0].clientX;
+    const diff = touchStartX.current - touchEndX;
+
+    if (Math.abs(diff) > 40) {
+      if (diff > 0) {
+        // Swipe left -> next image
+        setActiveIdx((prev) => (prev + 1) % allImages.length);
+      } else {
+        // Swipe right -> previous image
+        setActiveIdx((prev) => (prev - 1 + allImages.length) % allImages.length);
+      }
+    }
+    touchStartX.current = null;
+  };
 
   const handleAddToCart = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -24,33 +78,64 @@ export function ProductCard({ p }: { p: Product }) {
   };
 
   return (
-    <div className="group relative flex flex-col overflow-hidden rounded-2xl border border-border/80 bg-card transition-all duration-300 hover:-translate-y-1 hover:border-secondary/40 hover:shadow-hover">
+    <div
+      onMouseEnter={handleMouseEnter}
+      onMouseLeave={handleMouseLeave}
+      className="group relative flex flex-col overflow-hidden rounded-2xl border border-border/80 bg-card transition-all duration-300 hover:-translate-y-1 hover:border-secondary/40 hover:shadow-hover"
+    >
       {/* Product Image & Badges */}
-      <Link to="/product/$slug" params={{ slug: p.slug }} className="relative block aspect-square overflow-hidden bg-muted/60">
-        <img
-          src={mainImage(p)}
-          alt={p.name}
-          loading="lazy"
-          width={400}
-          height={400}
-          className="size-full object-cover transition-transform duration-500 ease-out group-hover:scale-105"
-        />
+      <Link
+        to="/product/$slug"
+        params={{ slug: p.slug }}
+        onTouchStart={handleTouchStart}
+        onTouchEnd={handleTouchEnd}
+        className="relative block aspect-square w-full overflow-hidden bg-muted/60 select-none"
+      >
+        {allImages.map((src, i) => (
+          <img
+            key={src + i}
+            src={src}
+            alt={`${p.name} - image ${i + 1}`}
+            loading="lazy"
+            width={400}
+            height={400}
+            className={`absolute inset-0 size-full object-cover transition-all duration-500 ease-out group-hover:scale-105 ${
+              i === activeIdx ? "opacity-100 z-10" : "opacity-0 z-0 pointer-events-none"
+            }`}
+          />
+        ))}
+
         {/* Discount Badge */}
         {off > 0 && (
-          <span className="absolute left-2.5 top-2.5 rounded-full bg-secondary px-2.5 py-0.5 text-[11px] font-bold text-secondary-foreground shadow-xs">
+          <span className="absolute left-2.5 top-2.5 z-20 rounded-full bg-secondary px-2.5 py-0.5 text-[11px] font-bold text-secondary-foreground shadow-xs">
             {off}% OFF
           </span>
         )}
+
         {/* Out of stock badge */}
         {out ? (
-          <div className="absolute inset-x-0 bottom-0 bg-primary/90 py-1.5 text-center text-xs font-semibold text-primary-foreground backdrop-blur-xs">
+          <div className="absolute inset-x-0 bottom-0 z-20 bg-primary/90 py-1.5 text-center text-xs font-semibold text-primary-foreground backdrop-blur-xs">
             Currently Out of Stock
           </div>
         ) : hasVariants ? (
-          <div className="absolute bottom-2 right-2 rounded-lg bg-background/90 px-2 py-0.5 text-[10px] font-bold text-foreground shadow-xs backdrop-blur-xs border border-border/50">
+          <div className="absolute bottom-2 right-2 z-20 rounded-lg bg-background/90 px-2 py-0.5 text-[10px] font-bold text-foreground shadow-xs backdrop-blur-xs border border-border/50">
             {p.variants!.length} Options
           </div>
         ) : null}
+
+        {/* Image dot indicators */}
+        {hasMultipleImages && (
+          <div className="absolute bottom-2 left-1/2 z-20 flex -translate-x-1/2 gap-1 rounded-full bg-background/60 px-1.5 py-0.5 backdrop-blur-xs">
+            {allImages.map((_, i) => (
+              <span
+                key={i}
+                className={`size-1.5 rounded-full transition-all duration-300 ${
+                  i === activeIdx ? "bg-secondary w-3" : "bg-muted-foreground/50"
+                }`}
+              />
+            ))}
+          </div>
+        )}
       </Link>
 
       {/* Product Information */}

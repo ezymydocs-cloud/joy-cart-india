@@ -10,6 +10,7 @@ export type ProductVariant = {
   mrp?: number | null;
   stock: number;
   image_url?: string | null;
+  image_urls?: string[];
   is_active?: boolean;
 };
 

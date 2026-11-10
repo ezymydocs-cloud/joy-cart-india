@@ -16,10 +16,16 @@ function dbError(e: { message?: string } | null) {
   return new Error(e?.message?.replace(/^.*?ERROR:\s*/, "") || "Something went wrong");
 }
 
-async function createRazorpayOrder(orderId: string, orderNumber: string, total: number) {
+async function createRazorpayOrder(
+  orderId: string,
+  orderNumber: string,
+  total: number,
+  userId: string,
+  userSupabase: any
+) {
   const keyId = (process.env["RAZORPAY_KEY_ID"] || process.env["VITE_RAZORPAY_KEY_ID"])?.trim();
   const secret = process.env["RAZORPAY_KEY_SECRET"]?.trim();
-  if (!keyId || !secret) throw new Error("Razorpay keys (RAZORPAY_KEY_ID / RAZORPAY_KEY_SECRET) are missing in Vercel Environment Variables");
+  if (!keyId || !secret) throw new Error("Razorpay keys (RAZORPAY_KEY_ID / RAZORPAY_KEY_SECRET) are missing in environment");
 
   const auth = typeof Buffer !== "undefined"
     ? Buffer.from(`${keyId}:${secret}`).toString("base64")
@@ -28,7 +34,16 @@ async function createRazorpayOrder(orderId: string, orderNumber: string, total: 
   const res = await fetch("https://api.razorpay.com/v1/orders", {
     method: "POST",
     headers: { Authorization: `Basic ${auth}`, "Content-Type": "application/json" },
-    body: JSON.stringify({ amount: Math.round(total * 100), currency: "INR", receipt: orderNumber }),
+    body: JSON.stringify({
+      amount: Math.round(total * 100),
+      currency: "INR",
+      receipt: orderNumber,
+      notes: {
+        order_id: orderId,
+        order_number: orderNumber,
+        user_id: userId,
+      },
+    }),
   });
 
   if (!res.ok) {
@@ -42,16 +57,26 @@ async function createRazorpayOrder(orderId: string, orderNumber: string, total: 
     throw new Error(
       errorDetail
         ? `Razorpay error: ${errorDetail}`
-        : `Razorpay error (${res.status}): Please check RAZORPAY_KEY_ID and RAZORPAY_KEY_SECRET in Vercel`
+        : `Razorpay error (${res.status}): Please check RAZORPAY_KEY_ID and RAZORPAY_KEY_SECRET`
     );
   }
   const rp = (await res.json()) as { id: string; amount: number };
-  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+
+  // Save razorpay_order_id via atomic user procedure (or admin client)
   try {
-    await supabaseAdmin.from("orders").update({ razorpay_order_id: rp.id }).eq("id", orderId);
+    const { error: rpcErr } = await userSupabase.rpc("attach_razorpay_order", {
+      p_order_id: orderId,
+      p_razorpay_order_id: rp.id,
+    });
+    if (rpcErr) {
+      console.warn("attach_razorpay_order RPC fallback to supabaseAdmin:", rpcErr);
+      const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+      await supabaseAdmin.from("orders").update({ razorpay_order_id: rp.id }).eq("id", orderId);
+    }
   } catch (dbErr) {
     console.warn("Could not save razorpay_order_id to DB:", dbErr);
   }
+
   return { keyId, razorpayOrderId: rp.id, amount: rp.amount };
 }
 
@@ -107,37 +132,154 @@ export const startOnlinePayment = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d) => z.object({ orderId: z.string().uuid() }).parse(d))
   .handler(async ({ data, context }) => {
-    const { data: o, error } = await context.supabase.from("orders").select("id,order_number,total,payment_method,payment_status,status,customer_name,customer_email,customer_phone").eq("id", data.orderId).single();
-    if (error || !o) throw new Error("Order not found");
-    if (o.payment_method !== "razorpay" || o.payment_status === "paid" || o.status === "cancelled") throw new Error("This order does not need payment");
-    const rp = await createRazorpayOrder(o.id, o.order_number, Number(o.total));
-    return { ...rp, orderNumber: o.order_number, name: o.customer_name, email: o.customer_email, phone: o.customer_phone };
+    // Strictly verify order belongs to the currently authenticated user
+    const { data: o, error } = await context.supabase
+      .from("orders")
+      .select("id,order_number,total,payment_method,payment_status,status,user_id,customer_name,customer_email,customer_phone")
+      .eq("id", data.orderId)
+      .eq("user_id", context.userId)
+      .single();
+
+    if (error || !o) throw new Error("Order not found or unauthorized");
+    if (o.payment_method !== "razorpay") throw new Error("Order payment method is not Razorpay");
+    if (o.payment_status === "paid") throw new Error("This order has already been paid");
+    if (o.status === "cancelled") throw new Error("Cancelled orders cannot be paid");
+
+    const rp = await createRazorpayOrder(o.id, o.order_number, Number(o.total), context.userId, context.supabase);
+    return {
+      ...rp,
+      orderNumber: o.order_number,
+      name: o.customer_name,
+      email: o.customer_email,
+      phone: o.customer_phone,
+    };
   });
 
 export const verifyOnlinePayment = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d) =>
-    z.object({ orderId: z.string().uuid(), razorpay_order_id: z.string(), razorpay_payment_id: z.string(), razorpay_signature: z.string() }).parse(d),
+    z.object({
+      orderId: z.string().uuid(),
+      razorpay_order_id: z.string().min(5),
+      razorpay_payment_id: z.string().min(5),
+      razorpay_signature: z.string().min(10),
+    }).parse(d),
   )
   .handler(async ({ data, context }) => {
-    const { data: o } = await context.supabase.from("orders").select("id,razorpay_order_id").eq("id", data.orderId).single();
-    if (!o || o.razorpay_order_id !== data.razorpay_order_id) throw new Error("Payment does not match this order");
-    const secret = process.env["RAZORPAY_KEY_SECRET"];
+    // 1. Ownership & existence check strictly for current user
+    const { data: o, error: orderErr } = await context.supabase
+      .from("orders")
+      .select("id,order_number,total,user_id,razorpay_order_id,payment_status")
+      .eq("id", data.orderId)
+      .eq("user_id", context.userId)
+      .single();
+
+    if (orderErr || !o) {
+      console.error(`[Verify] Order ${data.orderId} not found for user ${context.userId}`);
+      throw new Error("Order not found or access denied");
+    }
+
+    // 2. Signature verification using HMAC SHA-256
+    const secret = process.env["RAZORPAY_KEY_SECRET"]?.trim();
     if (!secret) throw new Error("Online payment is not configured");
-    const key = await crypto.subtle.importKey("raw", new TextEncoder().encode(secret), { name: "HMAC", hash: "SHA-256" }, false, ["sign"]);
-    const sig = await crypto.subtle.sign("HMAC", key, new TextEncoder().encode(`${data.razorpay_order_id}|${data.razorpay_payment_id}`));
+
+    const key = await crypto.subtle.importKey(
+      "raw",
+      new TextEncoder().encode(secret),
+      { name: "HMAC", hash: "SHA-256" },
+      false,
+      ["sign"]
+    );
+    const sig = await crypto.subtle.sign(
+      "HMAC",
+      key,
+      new TextEncoder().encode(`${data.razorpay_order_id}|${data.razorpay_payment_id}`)
+    );
     const hex = [...new Uint8Array(sig)].map((b) => b.toString(16).padStart(2, "0")).join("");
-    if (hex !== data.razorpay_signature) throw new Error("Payment verification failed");
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    await supabaseAdmin.from("orders").update({ payment_status: "paid", razorpay_payment_id: data.razorpay_payment_id }).eq("id", o.id);
+
+    if (hex !== data.razorpay_signature) {
+      console.error(`[Verify] Signature mismatch for order ${o.order_number}: computed=${hex}, received=${data.razorpay_signature}`);
+      throw new Error("Payment verification failed: invalid signature");
+    }
+
+    // 3. Razorpay REST API verification: fetch payment to verify amount and matching order
+    const keyId = (process.env["RAZORPAY_KEY_ID"] || process.env["VITE_RAZORPAY_KEY_ID"])?.trim();
+    if (keyId && secret) {
+      const auth = typeof Buffer !== "undefined"
+        ? Buffer.from(`${keyId}:${secret}`).toString("base64")
+        : btoa(`${keyId}:${secret}`);
+
+      try {
+        const payRes = await fetch(`https://api.razorpay.com/v1/payments/${encodeURIComponent(data.razorpay_payment_id)}`, {
+          headers: { Authorization: `Basic ${auth}` },
+        });
+
+        if (payRes.ok) {
+          const payData = (await payRes.json()) as { order_id?: string; amount?: number; status?: string; currency?: string };
+          if (payData.order_id && payData.order_id !== data.razorpay_order_id) {
+            console.error(`[Verify] Payment belongs to different Razorpay order: ${payData.order_id} vs ${data.razorpay_order_id}`);
+            throw new Error("Payment does not belong to this checkout order");
+          }
+          if (payData.status && !["captured", "authorized"].includes(payData.status)) {
+            console.error(`[Verify] Payment status is not captured: ${payData.status}`);
+            throw new Error(`Payment is not completed (status: ${payData.status})`);
+          }
+          const expectedPaise = Math.round(Number(o.total) * 100);
+          if (payData.amount && payData.amount < expectedPaise) {
+            console.error(`[Verify] Payment amount mismatch: expected >= ${expectedPaise}, got ${payData.amount}`);
+            throw new Error("Paid amount is less than order total");
+          }
+        }
+      } catch (fetchErr) {
+        console.warn("[Verify] Razorpay API verification call failed, relying on signature:", fetchErr);
+      }
+    }
+
+    // 4. Atomic DB confirmation via confirm_order_payment RPC
+    const { error: confirmErr } = await context.supabase.rpc("confirm_order_payment", {
+      p_order_id: o.id,
+      p_razorpay_order_id: data.razorpay_order_id,
+      p_razorpay_payment_id: data.razorpay_payment_id,
+      p_source: "verify_endpoint",
+    });
+
+    if (confirmErr) {
+      console.warn("confirm_order_payment RPC fallback:", confirmErr);
+      const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+      await supabaseAdmin
+        .from("orders")
+        .update({
+          payment_status: "paid",
+          status: "placed",
+          razorpay_order_id: data.razorpay_order_id,
+          razorpay_payment_id: data.razorpay_payment_id,
+          cancel_reason: null,
+          cancelled_by: null,
+        })
+        .eq("id", o.id);
+    }
+
+    // Send confirmation email
     await sendOrderEmails(o.id, "placed", origin());
-    return { ok: true };
+    return { ok: true, orderNumber: o.order_number };
   });
 
 export const cancelMyOrder = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d) => z.object({ orderId: z.string().uuid(), reason: z.string().max(300).optional(), silent: z.boolean().optional() }).parse(d))
   .handler(async ({ data, context }) => {
+    // Check order state first: do not cancel paid orders
+    const { data: o } = await context.supabase
+      .from("orders")
+      .select("id,payment_status,user_id")
+      .eq("id", data.orderId)
+      .eq("user_id", context.userId)
+      .maybeSingle();
+
+    if (o && o.payment_status === "paid") {
+      throw new Error("This order has already been paid and cannot be cancelled automatically.");
+    }
+
     const { error } = await context.supabase.rpc("cancel_my_order", { p_order_id: data.orderId, p_reason: data.reason ?? "" });
     if (error) throw dbError(error);
     if (!data.silent) {

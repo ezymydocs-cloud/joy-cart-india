@@ -14,7 +14,7 @@ import {
   AlertCircle,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import { PRODUCT_SELECT, sortedImages, type Product, type ProductVariant } from "@/lib/catalog";
+import { PRODUCT_SELECT, sortedImages, uploadImage, type Product, type ProductVariant } from "@/lib/catalog";
 import { slugify, inr } from "@/lib/format";
 import { MultiImageUploader, type Img } from "@/components/admin/ImageUploader";
 import { Button } from "@/components/ui/button";
@@ -109,7 +109,12 @@ function EditProduct() {
     });
     setImgs(sortedImages(p).map((i) => ({ url: i.url, storage_path: i.storage_path })));
 
-    const pVariants = Array.isArray(p.variants) ? (p.variants as ProductVariant[]) : [];
+    const pVariants = Array.isArray(p.variants)
+      ? (p.variants as ProductVariant[]).map((v) => ({
+          ...v,
+          image_urls: Array.isArray(v.image_urls) ? v.image_urls : (v.image_url ? [v.image_url] : []),
+        }))
+      : [];
     setVariants(pVariants);
     setHasVariants(pVariants.length > 0);
   }, [prod.data]);
@@ -187,15 +192,22 @@ function EditProduct() {
     const validVariants = hasVariants
       ? variants
           .filter((v) => v.name.trim().length > 0)
-          .map((v) => ({
-            ...v,
-            name: v.name.trim(),
-            sku: v.sku?.trim() || null,
-            price: v.price != null && Number(v.price) > 0 ? Number(v.price) : null,
-            mrp: v.mrp != null && Number(v.mrp) > 0 ? Number(v.mrp) : null,
-            stock: Math.max(0, Number(v.stock || 0)),
-            is_active: v.is_active !== false,
-          }))
+          .map((v) => {
+            const imgList = Array.isArray(v.image_urls)
+              ? v.image_urls.filter(Boolean)
+              : v.image_url ? [v.image_url] : [];
+            return {
+              ...v,
+              name: v.name.trim(),
+              sku: v.sku?.trim() || null,
+              price: v.price != null && Number(v.price) > 0 ? Number(v.price) : null,
+              mrp: v.mrp != null && Number(v.mrp) > 0 ? Number(v.mrp) : null,
+              stock: Math.max(0, Number(v.stock || 0)),
+              image_urls: imgList,
+              image_url: imgList[0] || null,
+              is_active: v.is_active !== false,
+            };
+          })
       : [];
 
     // If variants are enabled, base stock can sum variant stocks if needed
@@ -514,6 +526,13 @@ function EditProduct() {
                         >
                           <Trash2 className="size-4" />
                         </button>
+                      </div>
+                      {/* Multi-image uploader & gallery per variant */}
+                      <div className="sm:col-span-12">
+                        <VariantImageManager
+                          images={Array.isArray(v.image_urls) ? v.image_urls : (v.image_url ? [v.image_url] : [])}
+                          onChange={(newImgs) => updateVariant(idx, { image_urls: newImgs, image_url: newImgs[0] || null })}
+                        />
                       </div>
                     </div>
                   ))}

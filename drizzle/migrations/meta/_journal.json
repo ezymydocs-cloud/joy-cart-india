@@ -92,6 +92,13 @@
       "when": 1794148600000,
       "tag": "0012_flash_deals_and_announcements",
       "breakpoints": true
+    },
+    {
+      "idx": 13,
+      "version": "7",
+      "when": 1794148800000,
+      "tag": "0013_fix_order_integrity_and_variant_images",
+      "breakpoints": true
     }
   ]
 }

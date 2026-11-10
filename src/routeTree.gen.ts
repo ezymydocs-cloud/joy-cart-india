@@ -38,6 +38,7 @@ import { Route as AuthenticatedAdminSettingsRouteImport } from './routes/_authen
 import { Route as AuthenticatedOrderSuccessIdRouteImport } from './routes/_authenticated/order-success.$id'
 import { Route as AuthenticatedOrdersIndexRouteImport } from './routes/_authenticated/orders.index'
 import { Route as AuthenticatedOrdersIdRouteImport } from './routes/_authenticated/orders.$id'
+import { Route as ApiRazorpayWebhookRouteImport } from './routes/api/razorpay.webhook'
 import { Route as AuthenticatedAdminOrdersIndexRouteImport } from './routes/_authenticated/admin.orders.index'
 import { Route as AuthenticatedAdminOrdersIdRouteImport } from './routes/_authenticated/admin.orders.$id'
 import { Route as AuthenticatedAdminProductsIndexRouteImport } from './routes/_authenticated/admin.products.index'
@@ -198,6 +199,11 @@ const AuthenticatedOrdersIdRoute = AuthenticatedOrdersIdRouteImport.update({
   path: '/orders/$id',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const ApiRazorpayWebhookRoute = ApiRazorpayWebhookRouteImport.update({
+  id: '/api/razorpay/webhook',
+  path: '/api/razorpay/webhook',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AuthenticatedAdminOrdersIndexRoute =
   AuthenticatedAdminOrdersIndexRouteImport.update({
     id: '/orders/',
@@ -255,6 +261,7 @@ export interface FileRoutesByFullPath {
   '/admin/settings': typeof AuthenticatedAdminSettingsRoute
   '/order-success/$id': typeof AuthenticatedOrderSuccessIdRoute
   '/orders/$id': typeof AuthenticatedOrdersIdRoute
+  '/api/razorpay/webhook': typeof ApiRazorpayWebhookRoute
   '/admin/': typeof AuthenticatedAdminIndexRoute
   '/orders/': typeof AuthenticatedOrdersIndexRoute
   '/admin/orders/$id': typeof AuthenticatedAdminOrdersIdRoute
@@ -289,6 +296,7 @@ export interface FileRoutesByTo {
   '/admin/settings': typeof AuthenticatedAdminSettingsRoute
   '/order-success/$id': typeof AuthenticatedOrderSuccessIdRoute
   '/orders/$id': typeof AuthenticatedOrdersIdRoute
+  '/api/razorpay/webhook': typeof ApiRazorpayWebhookRoute
   '/admin': typeof AuthenticatedAdminIndexRoute
   '/orders': typeof AuthenticatedOrdersIndexRoute
   '/admin/orders/$id': typeof AuthenticatedAdminOrdersIdRoute
@@ -326,6 +334,7 @@ export interface FileRoutesById {
   '/_authenticated/admin/settings': typeof AuthenticatedAdminSettingsRoute
   '/_authenticated/order-success/$id': typeof AuthenticatedOrderSuccessIdRoute
   '/_authenticated/orders/$id': typeof AuthenticatedOrdersIdRoute
+  '/api/razorpay/webhook': typeof ApiRazorpayWebhookRoute
   '/_authenticated/admin/': typeof AuthenticatedAdminIndexRoute
   '/_authenticated/orders/': typeof AuthenticatedOrdersIndexRoute
   '/_authenticated/admin/orders/$id': typeof AuthenticatedAdminOrdersIdRoute
@@ -363,6 +372,7 @@ export interface FileRouteTypes {
     | '/admin/settings'
     | '/order-success/$id'
     | '/orders/$id'
+    | '/api/razorpay/webhook'
     | '/admin/'
     | '/orders/'
     | '/admin/orders/$id'
@@ -397,6 +407,7 @@ export interface FileRouteTypes {
     | '/admin/settings'
     | '/order-success/$id'
     | '/orders/$id'
+    | '/api/razorpay/webhook'
     | '/admin'
     | '/orders'
     | '/admin/orders/$id'
@@ -433,6 +444,7 @@ export interface FileRouteTypes {
     | '/_authenticated/admin/settings'
     | '/_authenticated/order-success/$id'
     | '/_authenticated/orders/$id'
+    | '/api/razorpay/webhook'
     | '/_authenticated/admin/'
     | '/_authenticated/orders/'
     | '/_authenticated/admin/orders/$id'
@@ -457,6 +469,7 @@ export interface RootRouteChildren {
   CategorySlugRoute: typeof CategorySlugRoute
   PoliciesSlugRoute: typeof PoliciesSlugRoute
   ProductSlugRoute: typeof ProductSlugRoute
+  ApiRazorpayWebhookRoute: typeof ApiRazorpayWebhookRoute
   ApiPublicImgBucketSplatRoute: typeof ApiPublicImgBucketSplatRoute
 }
 
@@ -665,6 +678,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedOrdersIdRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/api/razorpay/webhook': {
+      id: '/api/razorpay/webhook'
+      path: '/api/razorpay/webhook'
+      fullPath: '/api/razorpay/webhook'
+      preLoaderRoute: typeof ApiRazorpayWebhookRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/_authenticated/admin/orders/': {
       id: '/_authenticated/admin/orders/'
       path: '/orders'
@@ -774,6 +794,7 @@ const rootRouteChildren: RootRouteChildren = {
   CategorySlugRoute: CategorySlugRoute,
   PoliciesSlugRoute: PoliciesSlugRoute,
   ProductSlugRoute: ProductSlugRoute,
+  ApiRazorpayWebhookRoute: ApiRazorpayWebhookRoute,
   ApiPublicImgBucketSplatRoute: ApiPublicImgBucketSplatRoute,
 }
 export const routeTree = rootRouteImport

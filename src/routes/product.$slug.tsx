@@ -1,6 +1,6 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   Minus,
   Plus,
@@ -45,6 +45,10 @@ function ProductPage() {
   const [addedAnimation, setAddedAnimation] = useState(false);
   const [selectedVariantId, setSelectedVariantId] = useState<string | null>(null);
   const [bogoModalOpen, setBogoModalOpen] = useState(false);
+
+  useEffect(() => {
+    setActive(0);
+  }, [selectedVariantId]);
 
   const { data: p, isLoading, isError, refetch } = useQuery({
     queryKey: ["product", slug],
@@ -95,13 +99,21 @@ function ProductPage() {
       </div>
     );
 
-  const imgs = sortedImages(p);
-  const img = imgs[active]?.url ?? "/images/teddy.jpg";
   const variants = Array.isArray(p.variants)
     ? (p.variants as unknown as ProductVariant[]).filter((v) => v.is_active !== false)
     : [];
   const activeVariant =
     variants.find((v) => v.id === selectedVariantId) || (variants.length > 0 ? variants[0] : null);
+
+  // Variant images take precedence, falling back to product images if empty
+  const variantImgs = activeVariant?.image_urls && activeVariant.image_urls.length > 0
+    ? activeVariant.image_urls.map((u, i) => ({ id: `var_img_${i}`, url: u, sort_order: i }))
+    : activeVariant?.image_url
+    ? [{ id: "var_main", url: activeVariant.image_url, sort_order: 0 }]
+    : [];
+
+  const imgs = variantImgs.length > 0 ? variantImgs : sortedImages(p);
+  const img = imgs[active]?.url ?? imgs[0]?.url ?? "/images/teddy.jpg";
 
   const effectivePrice =
     activeVariant && activeVariant.price != null && Number(activeVariant.price) > 0

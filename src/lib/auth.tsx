@@ -10,20 +10,45 @@ const Ctx = createContext<AuthCtx>({ session: null, user: null, ready: false, is
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
   const [ready, setReady] = useState(false);
+  const [isRecovery, setIsRecovery] = useState(false);
   const qc = useQueryClient();
   const router = useRouter();
 
   useEffect(() => {
+    // Detect password recovery token in URL hash fragment
+    if (typeof window !== "undefined" && window.location.hash.includes("type=recovery")) {
+      setIsRecovery(true);
+    }
+
     const { data: sub } = supabase.auth.onAuthStateChange((event, s) => {
       setSession(s);
-      if (event !== "SIGNED_IN" && event !== "SIGNED_OUT" && event !== "USER_UPDATED") return;
-      router.invalidate();
-      if (event !== "SIGNED_OUT") qc.invalidateQueries();
+      if (event === "PASSWORD_RECOVERY") {
+        setIsRecovery(true);
+        router.navigate({ to: "/reset-password", replace: true });
+        return;
+      }
+
+      if (event === "SIGNED_OUT") {
+        try {
+          localStorage.removeItem("tt_cart_v1");
+          sessionStorage.clear();
+        } catch {}
+        qc.clear();
+        router.invalidate();
+        return;
+      }
+
+      if (event === "SIGNED_IN" || event === "USER_UPDATED") {
+        router.invalidate();
+        qc.invalidateQueries();
+      }
     });
+
     supabase.auth.getSession().then(({ data }) => {
       setSession(data.session);
       setReady(true);
     });
+
     return () => sub.subscription.unsubscribe();
   }, [qc, router]);
 
@@ -40,6 +65,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const signOut = async () => {
     await qc.cancelQueries();
     qc.clear();
+    try {
+      localStorage.removeItem("tt_cart_v1");
+      sessionStorage.clear();
+    } catch {}
     await supabase.auth.signOut();
     router.navigate({ to: "/auth", replace: true });
   };

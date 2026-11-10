@@ -47,6 +47,10 @@ function AuthPage() {
 
   useEffect(() => {
     if (ready && user) {
+      if (typeof window !== "undefined" && (window.location.hash.includes("type=recovery") || window.location.search.includes("type=recovery"))) {
+        nav({ to: "/reset-password", replace: true });
+        return;
+      }
       const r = sessionStorage.getItem("tt_after_login") ?? redirect;
       sessionStorage.removeItem("tt_after_login");
       nav({ to: safePath(r), replace: true });

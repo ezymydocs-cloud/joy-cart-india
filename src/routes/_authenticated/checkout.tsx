@@ -42,7 +42,14 @@ function Checkout() {
   const [adding, setAdding] = useState(false);
   const [method, setMethod] = useState<"cod" | "razorpay">("razorpay");
   const [busy, setBusy] = useState(false);
+  const [paymentError, setPaymentError] = useState<string | null>(null);
   const idem = useRef(crypto.randomUUID());
+
+  // Reset checkout address and idempotency whenever the authenticated user changes
+  useEffect(() => {
+    setAddrId(undefined);
+    idem.current = crypto.randomUUID();
+  }, [user?.id]);
   const [codeInput, setCodeInput] = useState("");
   const [coupon, setCoupon] = useState<{ code: string; discount: number } | null>(null);
   const [checking, setChecking] = useState(false);
@@ -94,6 +101,7 @@ function Checkout() {
     if (!addrId) return toast.error("Please add / select a delivery address");
     if (c.problems.length) return toast.error("Some items don't have enough stock. Please update your cart.");
     setBusy(true);
+    setPaymentError(null);
     try {
       const res = await place({
         data: {
@@ -114,34 +122,43 @@ function Checkout() {
 
       if (method === "razorpay") {
         let paid = false;
+        let failMessage = "";
         try {
           const cfg = await startPay({ data: { orderId: res.orderId } });
           const r = await openRazorpay(cfg);
           if (r) {
             await verifyPay({ data: { orderId: res.orderId, ...r } });
             paid = true;
-            toast.success("Payment successful!");
+            toast.success("Payment verified! Order placed successfully.");
           } else {
-            toast.error("Payment was cancelled. Order has not been placed.");
+            failMessage = "Payment window was closed or cancelled. Your cart items are preserved.";
+            toast.error(failMessage);
           }
         } catch (e) {
-          toast.error(e instanceof Error ? e.message : "Payment failed. Please try again.");
+          failMessage = e instanceof Error ? e.message : "Payment failed. Please try again.";
+          toast.error(failMessage);
         }
 
         if (!paid) {
+          // If payment was not completed, mark unpaid order cancelled to avoid dangling records
           try {
             await cancelOrder({ data: { orderId: res.orderId, reason: "Payment cancelled or failed", silent: true } });
           } catch (cancelErr) {
-            console.error("Could not cancel unpaid order:", cancelErr);
+            console.error("Could not cancel unpaid attempt:", cancelErr);
           }
+          // Do NOT clear cart; allow user to retry immediately
+          setPaymentError(failMessage || "Payment was not completed. Click Retry Payment to try again.");
           idem.current = crypto.randomUUID();
           setBusy(false);
           return;
         }
       }
 
+      // ONLY clear cart after payment confirmation
       clear();
-      nav({ to: "/order-success/$id", params: { id: res.orderId }, replace: true });
+      // Redirect to My Orders tab so customer immediately sees their Confirmed/Paid order
+      toast.success("Order confirmed!");
+      nav({ to: "/orders", replace: true });
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Could not place order");
       idem.current = crypto.randomUUID();
@@ -152,7 +169,24 @@ function Checkout() {
 
   return (
     <div className="mx-auto max-w-5xl px-4 py-6">
-      <h1 className="mb-5 text-3xl">Checkout</h1>
+      <h1 className="mb-5 text-3xl font-bold">Checkout</h1>
+      {paymentError && (
+        <div className="mb-6 rounded-2xl border border-destructive/40 bg-destructive/10 p-4 text-destructive flex items-center justify-between gap-4">
+          <div>
+            <p className="font-bold">Payment Incomplete</p>
+            <p className="text-sm">{paymentError}</p>
+          </div>
+          <Button
+            type="button"
+            variant="default"
+            className="bg-destructive text-destructive-foreground hover:bg-destructive/90 shrink-0"
+            onClick={submit}
+            disabled={busy}
+          >
+            {busy ? "Processing…" : "Retry Payment"}
+          </Button>
+        </div>
+      )}
       <div className="grid gap-6 md:grid-cols-[1fr_340px]">
         <div className="space-y-6">
           <section>
