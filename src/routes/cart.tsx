@@ -10,6 +10,7 @@ import { inr } from "@/lib/format";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Totals } from "@/components/site/Summary";
+import { useFirstOrderEligibility } from "@/lib/firstOrder";
 
 export const Route = createFileRoute("/cart")({
   head: () => ({
@@ -32,6 +33,10 @@ function Cart() {
   const c = useCartProducts();
   const [couponCode, setCouponCode] = useState("");
   const [couponApplied, setCouponApplied] = useState(false);
+  const firstOrder = useFirstOrderEligibility();
+  const isFirstOrderEligible = firstOrder.data?.eligible === true;
+  const firstOrderDiscount = isFirstOrderEligible ? Math.round(c.subtotal * 0.20) : 0;
+  const grandTotal = Math.max(0, c.total - firstOrderDiscount);
 
   useEffect(() => {
     c.missing.forEach((l) => remove(l.productId));
@@ -300,7 +305,64 @@ function Cart() {
           <div className="h-fit space-y-4 rounded-3xl border bg-card p-6 shadow-xs">
             <h2 className="font-display text-lg font-bold text-foreground">Order Summary</h2>
 
-            <Totals subtotal={c.subtotal} shipping={c.shipping} total={c.total} />
+            {/* First Order Promotional / Status Banner */}
+            {!user && (
+              <div className="rounded-2xl border border-secondary/40 bg-gradient-to-r from-secondary/15 via-sun-soft to-secondary/10 p-3.5 flex items-center justify-between gap-3 shadow-xs">
+                <div className="flex items-center gap-2.5">
+                  <span className="text-xl">🎁</span>
+                  <div>
+                    <p className="text-xs font-bold text-foreground">Get 20% OFF on your first order!</p>
+                    <p className="text-[11px] text-muted-foreground">Login & verify your account to automatically unlock 20% discount.</p>
+                  </div>
+                </div>
+                <Button
+                  size="sm"
+                  className="bg-secondary text-secondary-foreground hover:bg-secondary/90 text-xs font-bold shrink-0 shadow-xs"
+                  onClick={() => nav({ to: "/auth", search: { redirect: "/cart" } })}
+                >
+                  Login
+                </Button>
+              </div>
+            )}
+
+            {user && firstOrder.data?.reason === "not_verified" && (
+              <div className="rounded-2xl border border-amber-500/40 bg-amber-500/10 p-3.5 flex items-center justify-between gap-3 shadow-xs">
+                <div className="flex items-center gap-2.5">
+                  <span className="text-xl">⚡</span>
+                  <div>
+                    <p className="text-xs font-bold text-foreground">Unlock 20% First Order Discount</p>
+                    <p className="text-[11px] text-muted-foreground">Please verify your email/phone to activate 20% off on this order.</p>
+                  </div>
+                </div>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="border-amber-500 text-amber-700 dark:text-amber-400 hover:bg-amber-500/15 text-xs font-bold shrink-0"
+                  onClick={() => nav({ to: "/account" })}
+                >
+                  Verify Now
+                </Button>
+              </div>
+            )}
+
+            {user && isFirstOrderEligible && (
+              <div className="rounded-2xl border border-emerald-500/40 bg-emerald-500/10 p-3.5 flex items-center gap-2.5 shadow-xs">
+                <span className="text-xl">🎉</span>
+                <div>
+                  <p className="text-xs font-bold text-emerald-800 dark:text-emerald-300">20% OFF applied on your first order!</p>
+                  <p className="text-[11px] text-emerald-700/90 dark:text-emerald-400 font-medium">
+                    You save {inr(firstOrderDiscount)} on product subtotal.
+                  </p>
+                </div>
+              </div>
+            )}
+
+            <Totals
+              subtotal={c.subtotal}
+              shipping={c.shipping}
+              total={grandTotal}
+              firstOrderDiscount={firstOrderDiscount}
+            />
 
             <Button
               size="lg"

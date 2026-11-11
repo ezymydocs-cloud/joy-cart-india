@@ -107,6 +107,7 @@ export const placeOrder = createServerFn({ method: "POST" })
         paymentMethod: z.enum(["cod", "razorpay"]),
         idempotencyKey: z.string().min(8).max(100),
         couponCode: z.string().trim().max(30).optional(),
+        applyFirstOrder: z.boolean().optional(),
       })
       .parse(d),
   )
@@ -121,6 +122,7 @@ export const placeOrder = createServerFn({ method: "POST" })
       p_payment_method: data.paymentMethod,
       p_idempotency_key: data.idempotencyKey,
       p_coupon_code: data.couponCode || undefined,
+      p_apply_first_order: data.applyFirstOrder ?? true,
     });
     if (error) throw dbError(error);
     const r = res as { order_id: string; order_number: string; duplicate: boolean };
@@ -310,6 +312,15 @@ export const verifyOnlinePayment = createServerFn({ method: "POST" })
         console.error("[Payment Verify] supabaseAdmin update exception:", adminEx);
       }
     }
+
+    // Mark any reserved first_order_claims as completed
+    try {
+      await context.supabase
+        .from("first_order_claims")
+        .update({ status: "completed", updated_at: new Date().toISOString() })
+        .eq("order_id", o.id)
+        .eq("status", "reserved");
+    } catch {}
 
     // Send confirmation email
     try {

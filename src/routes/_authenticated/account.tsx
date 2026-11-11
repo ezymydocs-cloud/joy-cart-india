@@ -58,11 +58,40 @@ function Account() {
     <div className="mx-auto max-w-3xl space-y-8 px-4 py-6">
       <div className="flex items-center justify-between"><h1 className="text-3xl">My account</h1><Button asChild variant="outline"><Link to="/orders">My orders</Link></Button></div>
       <section className="space-y-3 rounded-2xl border p-5">
-        <h2 className="text-xl">Profile</h2>
+        <div className="flex items-center justify-between">
+          <h2 className="text-xl">Profile</h2>
+          {user?.email_confirmed_at || user?.phone_confirmed_at ? (
+            <span className="rounded-full bg-emerald-500/15 px-2.5 py-0.5 text-xs font-bold text-emerald-700 dark:text-emerald-400">
+              ✓ Verified Identity
+            </span>
+          ) : (
+            <span className="rounded-full bg-amber-500/15 px-2.5 py-0.5 text-xs font-bold text-amber-700 dark:text-amber-400">
+              Unverified
+            </span>
+          )}
+        </div>
         <div className="grid gap-3 sm:grid-cols-2">
           <div><Label>Full name</Label><Input value={p.full_name} onChange={(e) => setP({ ...p, full_name: e.target.value })} /></div>
           <div><Label>Mobile number</Label><Input inputMode="numeric" maxLength={10} value={p.phone} onChange={(e) => setP({ ...p, phone: e.target.value.replace(/\D/g, "") })} /></div>
-          <div className="sm:col-span-2"><Label>Email</Label><Input value={user?.email ?? ""} disabled /></div>
+          <div className="sm:col-span-2">
+            <div className="flex items-center justify-between">
+              <Label>Email</Label>
+              {!user?.email_confirmed_at && user?.email && (
+                <button
+                  type="button"
+                  className="text-xs font-semibold text-secondary hover:underline"
+                  onClick={async () => {
+                    const { error } = await supabase.auth.resend({ type: "signup", email: user.email! });
+                    if (error) toast.error(error.message);
+                    else toast.success("Verification link sent to " + user.email);
+                  }}
+                >
+                  Send verification email
+                </button>
+              )}
+            </div>
+            <Input value={user?.email ?? ""} disabled className="mt-1" />
+          </div>
         </div>
         <Button onClick={saveProfile}>Save profile</Button>
       </section>

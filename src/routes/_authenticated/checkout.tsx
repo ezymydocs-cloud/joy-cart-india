@@ -13,6 +13,7 @@ import { cancelMyOrder, getPaymentConfig, placeOrder, startOnlinePayment, verify
 import { openRazorpay } from "@/lib/razorpay";
 import { AddressForm, type AddressRow } from "@/components/site/AddressForm";
 import { Totals, CancelRuleNote } from "@/components/site/Summary";
+import { useFirstOrderEligibility } from "@/lib/firstOrder";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
@@ -73,7 +74,10 @@ function Checkout() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [cartKey]);
   const discount = coupon?.discount ?? 0;
-  const grand = Math.max(0, c.total - discount);
+  const firstOrder = useFirstOrderEligibility();
+  const isFirstOrderEligible = firstOrder.data?.eligible === true;
+  const firstOrderDiscount = isFirstOrderEligible ? Math.round(c.subtotal * 0.20) : 0;
+  const grand = Math.max(0, c.total - discount - firstOrderDiscount);
 
   const addrs = useQuery({
     queryKey: ["addresses", user?.id],
@@ -134,6 +138,7 @@ function Checkout() {
           paymentMethod: method,
           idempotencyKey: idem.current,
           couponCode: coupon?.code,
+          applyFirstOrder: isFirstOrderEligible,
         },
       });
 
@@ -451,7 +456,41 @@ function Checkout() {
               </div>
             )}
           </div>
-          <Totals subtotal={c.subtotal} shipping={c.shipping} total={grand} discount={discount} coupon={coupon?.code} />
+          {/* First Order Discount Banner */}
+          {isFirstOrderEligible && (
+            <div className="rounded-2xl border border-emerald-500/40 bg-emerald-500/10 p-3 flex items-center gap-2.5">
+              <span className="text-xl">🎉</span>
+              <div>
+                <p className="text-xs font-bold text-emerald-800 dark:text-emerald-300">
+                  First Order 20% Discount Applied!
+                </p>
+                <p className="text-[11px] text-emerald-700/90 dark:text-emerald-400">
+                  Saving {inr(firstOrderDiscount)} on your order.
+                </p>
+              </div>
+            </div>
+          )}
+
+          {firstOrder.data?.reason === "not_verified" && (
+            <div className="rounded-2xl border border-amber-500/40 bg-amber-500/10 p-3 flex items-center justify-between gap-2.5">
+              <div>
+                <p className="text-xs font-bold text-foreground">Verify to unlock 20% OFF</p>
+                <p className="text-[11px] text-muted-foreground">Confirm email/phone to apply 20% first-order discount.</p>
+              </div>
+              <Button size="sm" variant="outline" className="border-amber-500 text-xs shrink-0" onClick={() => nav({ to: "/account" })}>
+                Verify
+              </Button>
+            </div>
+          )}
+
+          <Totals
+            subtotal={c.subtotal}
+            shipping={c.shipping}
+            total={grand}
+            discount={discount}
+            coupon={coupon?.code}
+            firstOrderDiscount={firstOrderDiscount}
+          />
           <CancelRuleNote />
           <Button
             size="lg"
