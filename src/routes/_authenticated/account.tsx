@@ -33,7 +33,12 @@ function Account() {
     queryKey: ["addresses", user?.id],
     enabled: !!user,
     queryFn: async () => {
-      const { data, error } = await supabase.from("addresses").select("*").order("is_default", { ascending: false }).order("created_at");
+      const { data, error } = await supabase
+        .from("addresses")
+        .select("*")
+        .eq("user_id", user!.id)
+        .order("is_default", { ascending: false })
+        .order("created_at", { ascending: false });
       if (error) throw error;
       return data as AddressRow[];
     },

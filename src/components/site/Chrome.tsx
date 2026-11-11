@@ -1,5 +1,7 @@
 import { Link, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 import {
   Instagram,
   Mail,
@@ -272,6 +274,32 @@ export function SiteHeader() {
 export function SiteFooter() {
   const [newsEmail, setNewsEmail] = useState("");
 
+  // Only show Cash on Delivery badge if at least one active product has COD enabled
+  const { data: hasCod = false } = useQuery({
+    queryKey: ["store-has-cod"],
+    staleTime: 1000 * 60 * 10,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("products")
+        .select("id")
+        .eq("status", "active")
+        .eq("cod_enabled", true)
+        .limit(1);
+      if (error) return false;
+      return (data?.length ?? 0) > 0;
+    },
+  });
+
+  const paymentBadges = [
+    "UPI",
+    "RuPay",
+    "Visa",
+    "Mastercard",
+    "NetBanking",
+    "Digital Wallets",
+    ...(hasCod ? ["Cash on Delivery"] : []),
+  ];
+
   const handleSubscribe = (e: React.FormEvent) => {
     e.preventDefault();
     if (!newsEmail || !newsEmail.includes("@")) {
@@ -400,7 +428,7 @@ export function SiteFooter() {
             <span className="text-[11px] font-medium text-primary-foreground/60 mr-1 flex items-center gap-1">
               <CreditCard className="size-3.5" /> 100% Secure Payments:
             </span>
-            {["UPI", "RuPay", "Visa", "Mastercard", "NetBanking", "Digital Wallets", "Cash on Delivery"].map((p) => (
+            {paymentBadges.map((p) => (
               <span
                 key={p}
                 className="rounded-md border border-primary-foreground/20 bg-primary-foreground/5 px-2.5 py-1 text-[10px] font-semibold text-primary-foreground/90 transition hover:bg-primary-foreground/15"

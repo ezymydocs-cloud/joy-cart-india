@@ -14,8 +14,8 @@ export function TrustSection() {
     },
     {
       icon: Wallet,
-      title: "COD & Secure Online Pay",
-      desc: "Pay via UPI, Cards, NetBanking, or Cash on Delivery",
+      title: "100% Secure Payments",
+      desc: "Instant UPI, Debit/Credit Cards & NetBanking options",
     },
     {
       icon: RotateCcw,

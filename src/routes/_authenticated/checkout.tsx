@@ -44,11 +44,15 @@ function Checkout() {
   const [busy, setBusy] = useState(false);
   const [paymentError, setPaymentError] = useState<string | null>(null);
   const idem = useRef(crypto.randomUUID());
+  const prevUserIdRef = useRef<string | undefined>(user?.id);
 
-  // Reset checkout address and idempotency whenever the authenticated user changes
+  // Reset checkout address and idempotency ONLY when the authenticated user genuinely switches
   useEffect(() => {
-    setAddrId(undefined);
-    idem.current = crypto.randomUUID();
+    if (prevUserIdRef.current && prevUserIdRef.current !== user?.id) {
+      setAddrId(undefined);
+      idem.current = crypto.randomUUID();
+    }
+    prevUserIdRef.current = user?.id;
   }, [user?.id]);
   const [codeInput, setCodeInput] = useState("");
   const [coupon, setCoupon] = useState<{ code: string; discount: number } | null>(null);
@@ -75,7 +79,12 @@ function Checkout() {
     queryKey: ["addresses", user?.id],
     enabled: !!user,
     queryFn: async () => {
-      const { data, error } = await supabase.from("addresses").select("*").order("is_default", { ascending: false }).order("created_at");
+      const { data, error } = await supabase
+        .from("addresses")
+        .select("*")
+        .eq("user_id", user!.id)
+        .order("is_default", { ascending: false })
+        .order("created_at", { ascending: false });
       if (error) throw error;
       return data as AddressRow[];
     },
@@ -89,8 +98,16 @@ function Checkout() {
     if (method === "cod" && !codOn) setMethod("razorpay");
     if (method === "razorpay" && !razorpayOn && codOn) setMethod("cod");
   }, [codOn, razorpayOn, method]);
+
+  // Keep a valid saved address selected whenever addresses are available
   useEffect(() => {
-    if (!addrId && addrs.data?.length) setAddrId(addrs.data[0].id);
+    if (addrs.data && addrs.data.length > 0) {
+      const stillValid = addrs.data.some((a) => a.id === addrId);
+      if (!stillValid) {
+        const defaultAddr = addrs.data.find((a) => a.is_default) || addrs.data[0];
+        setAddrId(defaultAddr.id);
+      }
+    }
   }, [addrs.data, addrId]);
 
   if (lines.length === 0 && !busy)
@@ -213,39 +230,166 @@ function Checkout() {
       <div className="grid gap-6 md:grid-cols-[1fr_340px]">
         <div className="space-y-6">
           <section>
-            <h2 className="mb-3 text-xl">1. Delivery address</h2>
-            {addrs.isLoading ? <div className="h-24 animate-pulse rounded-2xl bg-muted" /> : (
-              <div className="space-y-2">
-                {addrs.data?.map((a) => (
-                  <label key={a.id} className={`flex cursor-pointer gap-3 rounded-2xl border p-4 ${addrId === a.id ? "border-secondary bg-sun-soft" : ""}`}>
-                    <input type="radio" name="addr" checked={addrId === a.id} onChange={() => setAddrId(a.id)} className="mt-1 accent-secondary" />
-                    <div className="text-sm">
-                      <div className="font-bold">{a.full_name} · {a.phone}</div>
-                      <div className="text-muted-foreground">{addressLines(a).join(", ")}</div>
+            <div className="mb-3 flex items-center justify-between">
+              <h2 className="text-xl font-bold">1. Delivery address</h2>
+              {!adding && addrs.data && addrs.data.length > 0 && (
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setAdding(true)}
+                  className="text-xs font-semibold"
+                >
+                  + Add new address
+                </Button>
+              )}
+            </div>
+
+            {addrs.isLoading ? (
+              <div className="h-24 animate-pulse rounded-2xl bg-muted" />
+            ) : (
+              <div className="space-y-3">
+                {addrs.data?.map((a) => {
+                  const isSelected = addrId === a.id;
+                  return (
+                    <div
+                      key={a.id}
+                      role="button"
+                      tabIndex={0}
+                      onClick={() => setAddrId(a.id)}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter" || e.key === " ") {
+                          e.preventDefault();
+                          setAddrId(a.id);
+                        }
+                      }}
+                      className={`relative flex cursor-pointer items-start gap-3.5 rounded-2xl border-2 p-4 transition-all ${
+                        isSelected
+                          ? "border-secondary bg-secondary/10 shadow-sm ring-2 ring-secondary/20"
+                          : "border-border/80 bg-card hover:border-secondary/50 hover:bg-muted/30"
+                      }`}
+                    >
+                      <div className="pt-0.5">
+                        <div
+                          className={`size-5 rounded-full border-2 flex items-center justify-center transition ${
+                            isSelected
+                              ? "border-secondary bg-secondary text-white"
+                              : "border-muted-foreground/40 bg-background"
+                          }`}
+                        >
+                          {isSelected && <div className="size-2 rounded-full bg-white" />}
+                        </div>
+                      </div>
+                      <div className="flex-1 text-sm">
+                        <div className="flex flex-wrap items-center gap-2">
+                          <span className="font-bold text-foreground">{a.full_name}</span>
+                          <span className="text-muted-foreground">·</span>
+                          <span className="font-medium text-foreground/90">{a.phone}</span>
+                          {a.is_default && (
+                            <span className="rounded-full bg-secondary/15 px-2 py-0.5 text-[10px] font-bold text-secondary uppercase">
+                              Default
+                            </span>
+                          )}
+                          {isSelected && (
+                            <span className="ml-auto rounded-full bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 px-2 py-0.5 text-[11px] font-bold">
+                              ✓ Selected for Delivery
+                            </span>
+                          )}
+                        </div>
+                        <div className="text-xs text-muted-foreground mt-1.5 leading-relaxed">
+                          {addressLines(a).join(", ")}
+                        </div>
+                      </div>
                     </div>
-                  </label>
-                ))}
+                  );
+                })}
+
                 {adding || !addrs.data?.length ? (
-                  <AddressForm userId={user!.id} makeDefault={!addrs.data?.length} onCancel={addrs.data?.length ? () => setAdding(false) : undefined} onSaved={async (id) => { await addrs.refetch(); setAddrId(id); setAdding(false); }} />
-                ) : (
-                  <Button variant="outline" onClick={() => setAdding(true)}>+ Add new address</Button>
-                )}
+                  <div className="mt-3">
+                    <p className="text-xs font-bold text-muted-foreground mb-2">
+                      {addrs.data?.length ? "Enter New Delivery Address:" : "Please Add a Delivery Address to Proceed:"}
+                    </p>
+                    <AddressForm
+                      userId={user!.id}
+                      makeDefault={!addrs.data?.length}
+                      onCancel={addrs.data?.length ? () => setAdding(false) : undefined}
+                      onSaved={async (id) => {
+                        await addrs.refetch();
+                        setAddrId(id);
+                        setAdding(false);
+                      }}
+                    />
+                  </div>
+                ) : null}
               </div>
             )}
           </section>
+
           <section>
-            <h2 className="mb-3 text-xl">2. Payment</h2>
-            <div className="space-y-2">
-              {codOn && <label className={`flex cursor-pointer items-center gap-3 rounded-2xl border p-4 ${method === "cod" ? "border-secondary bg-sun-soft" : ""}`}>
-                <input type="radio" checked={method === "cod"} onChange={() => setMethod("cod")} className="accent-secondary" />
-                <span className="font-bold">Cash on Delivery</span>
-              </label>}
-              {!razorpayOn && !codOn && <p className="rounded-2xl border border-destructive p-4 text-sm font-bold text-destructive">Online payment is being set up. Please check back soon or WhatsApp us to order.</p>}
+            <h2 className="mb-3 text-xl font-bold">2. Payment Method</h2>
+            <div className="space-y-2.5">
+              {codOn && (
+                <div
+                  role="button"
+                  tabIndex={0}
+                  onClick={() => setMethod("cod")}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" || e.key === " ") {
+                      e.preventDefault();
+                      setMethod("cod");
+                    }
+                  }}
+                  className={`flex cursor-pointer items-center gap-3.5 rounded-2xl border-2 p-4 transition-all ${
+                    method === "cod"
+                      ? "border-secondary bg-secondary/10 ring-2 ring-secondary/20"
+                      : "border-border/80 bg-card hover:border-secondary/50 hover:bg-muted/30"
+                  }`}
+                >
+                  <div
+                    className={`size-5 rounded-full border-2 flex items-center justify-center transition ${
+                      method === "cod"
+                        ? "border-secondary bg-secondary text-white"
+                        : "border-muted-foreground/40 bg-background"
+                    }`}
+                  >
+                    {method === "cod" && <div className="size-2 rounded-full bg-white" />}
+                  </div>
+                  <span className="font-bold text-foreground">Cash on Delivery</span>
+                </div>
+              )}
+              {!razorpayOn && !codOn && (
+                <p className="rounded-2xl border border-destructive p-4 text-sm font-bold text-destructive">
+                  Online payment is being set up. Please check back soon or WhatsApp us to order.
+                </p>
+              )}
               {razorpayOn && (
-                <label className={`flex cursor-pointer items-center gap-3 rounded-2xl border p-4 ${method === "razorpay" ? "border-secondary bg-sun-soft" : ""}`}>
-                  <input type="radio" checked={method === "razorpay"} onChange={() => setMethod("razorpay")} className="accent-secondary" />
-                  <span className="font-bold">Pay online (UPI, Cards, Netbanking)</span>
-                </label>
+                <div
+                  role="button"
+                  tabIndex={0}
+                  onClick={() => setMethod("razorpay")}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" || e.key === " ") {
+                      e.preventDefault();
+                      setMethod("razorpay");
+                    }
+                  }}
+                  className={`flex cursor-pointer items-center gap-3.5 rounded-2xl border-2 p-4 transition-all ${
+                    method === "razorpay"
+                      ? "border-secondary bg-secondary/10 ring-2 ring-secondary/20"
+                      : "border-border/80 bg-card hover:border-secondary/50 hover:bg-muted/30"
+                  }`}
+                >
+                  <div
+                    className={`size-5 rounded-full border-2 flex items-center justify-center transition ${
+                      method === "razorpay"
+                        ? "border-secondary bg-secondary text-white"
+                        : "border-muted-foreground/40 bg-background"
+                    }`}
+                  >
+                    {method === "razorpay" && <div className="size-2 rounded-full bg-white" />}
+                  </div>
+                  <span className="font-bold text-foreground">Pay online (UPI, Cards, Netbanking)</span>
+                </div>
               )}
             </div>
           </section>
@@ -309,9 +453,19 @@ function Checkout() {
           </div>
           <Totals subtotal={c.subtotal} shipping={c.shipping} total={grand} discount={discount} coupon={coupon?.code} />
           <CancelRuleNote />
-          <Button size="lg" className="w-full" disabled={busy || c.isLoading || (method === "razorpay" ? !razorpayOn : !codOn) || !addrId || c.problems.length > 0} onClick={submit}>
+          <Button
+            size="lg"
+            className="w-full font-bold shadow-sm"
+            disabled={busy || c.isLoading || (method === "razorpay" ? !razorpayOn : !codOn) || c.problems.length > 0}
+            onClick={submit}
+          >
             {busy ? "Placing order…" : `Place Order · ${inr(grand)}`}
           </Button>
+          {!addrId && (
+            <p className="text-center text-xs text-destructive font-medium">
+              * Please select or add a delivery address to place order.
+            </p>
+          )}
           <p className="text-center text-xs text-muted-foreground">Final prices are confirmed by our system when you place the order.</p>
         </aside>
       </div>

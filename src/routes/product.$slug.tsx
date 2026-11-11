@@ -437,7 +437,7 @@ function ProductPage() {
 
             {p.short_description && (
               <p className="mt-2 text-xs sm:text-sm text-muted-foreground leading-relaxed">
-                {p.short_description}
+                {p.short_description.replace(/collecters/gi, "collectors")}
               </p>
             )}
 
@@ -557,7 +557,9 @@ function ProductPage() {
                 )}
               </div>
               <p className="mt-1 text-[11px] text-muted-foreground">
-                Inclusive of all taxes · Cash on Delivery available across India
+                {p.cod_enabled
+                  ? "Inclusive of all taxes · Cash on Delivery available across India"
+                  : "Inclusive of all taxes · Online Payment (UPI / Cards / NetBanking)"}
               </p>
             </div>
 
@@ -632,7 +634,7 @@ function ProductPage() {
                 disabled={out}
                 onClick={handleBuyNow}
               >
-                <Zap className="size-4 mr-2 fill-current" /> Buy Now (COD / UPI)
+                <Zap className="size-4 mr-2 fill-current" /> {p.cod_enabled ? "Buy Now (COD / UPI)" : "Buy Now (UPI / Card)"}
               </Button>
             </div>
 
@@ -686,7 +688,7 @@ function ProductPage() {
             Product Description & Features
           </h2>
           <div className="mt-4 whitespace-pre-line text-xs sm:text-sm leading-relaxed text-foreground/80 border-t pt-4">
-            {p.description}
+            {p.description.replace(/collecters/gi, "collectors")}
           </div>
         </section>
       )}
