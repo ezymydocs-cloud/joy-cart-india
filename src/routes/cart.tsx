@@ -1,11 +1,12 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { useQuery } from "@tanstack/react-query";
 import { Minus, Plus, Trash2, ShoppingBag, Truck, ShieldCheck, ArrowRight, Sparkles, RotateCcw } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { useCart } from "@/lib/cart";
 import { useAuth } from "@/lib/auth";
 import { useCartProducts } from "@/lib/useCartProducts";
-import { mainImage } from "@/lib/catalog";
+import { mainImage, fetchSettings } from "@/lib/catalog";
 import { inr } from "@/lib/format";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -31,11 +32,23 @@ function Cart() {
   const { user } = useAuth();
   const nav = useNavigate();
   const c = useCartProducts();
+
+  const settings = useQuery({ queryKey: ["settings"], queryFn: fetchSettings });
+  const foCouponCode = (((settings.data as any)?.first_order_coupon_code || "TRENDY20") as string).toUpperCase();
+  const foCouponRequired = (settings.data as any)?.first_order_coupon_required !== false;
+  const foEnabled = (settings.data as any)?.first_order_discount_enabled !== false;
+  const foPercent = Number((settings.data as any)?.first_order_discount_percent) || 20;
+
   const [couponCode, setCouponCode] = useState("");
+  const [appliedCoupon, setAppliedCoupon] = useState<string | null>(null);
   const [couponApplied, setCouponApplied] = useState(false);
+
   const firstOrder = useFirstOrderEligibility();
   const isFirstOrderEligible = firstOrder.data?.eligible === true;
-  const firstOrderDiscount = isFirstOrderEligible ? Math.round(c.subtotal * 0.20) : 0;
+  const isFoApplied = appliedCoupon?.toUpperCase() === foCouponCode;
+
+  const isFirstOrderActive = foEnabled && isFirstOrderEligible && (!foCouponRequired || isFoApplied);
+  const firstOrderDiscount = isFirstOrderActive ? Math.round(c.subtotal * (foPercent / 100)) : 0;
   const grandTotal = Math.max(0, c.total - firstOrderDiscount);
 
   useEffect(() => {
@@ -45,10 +58,32 @@ function Cart() {
   const freeShippingDiff = FREE_SHIPPING_THRESHOLD - c.subtotal;
   const progressPct = Math.min(100, Math.round((c.subtotal / FREE_SHIPPING_THRESHOLD) * 100));
 
-  const applyCoupon = async (e: React.FormEvent) => {
-    e.preventDefault();
-    const code = couponCode.trim().toUpperCase();
+  const applyCouponCode = async (rawCode: string) => {
+    const code = rawCode.trim().toUpperCase();
     if (!code) return;
+
+    if (code === foCouponCode) {
+      if (!foEnabled) {
+        toast.error("First-order offer is currently not active.");
+        return;
+      }
+      if (!user) {
+        toast.error(`Please login to apply first-order code ${code}`);
+        return;
+      }
+      if (firstOrder.data?.reason === "not_verified") {
+        toast.error(`Please verify your email/phone to activate coupon ${code}`);
+        return;
+      }
+      if (!isFirstOrderEligible) {
+        toast.error(firstOrder.data?.message || `Coupon ${code} is only valid on your first order.`);
+        return;
+      }
+      setAppliedCoupon(code);
+      setCouponApplied(true);
+      toast.success(`🎉 First order code ${code} applied! ${foPercent}% OFF.`);
+      return;
+    }
 
     try {
       // 1. Check offers table
@@ -64,6 +99,7 @@ function Cart() {
           toast.error("Add toys worth " + inr(offerData.min_order_value) + " or more to use this code.");
           return;
         }
+        setAppliedCoupon(code);
         setCouponApplied(true);
         toast.success(
           offerData.discount_type === "bogo"
@@ -86,6 +122,7 @@ function Cart() {
           toast.error("Add toys worth " + inr(couponData.min_order) + " or more to use this code.");
           return;
         }
+        setAppliedCoupon(code);
         setCouponApplied(true);
         toast.success("Coupon " + code + " applied successfully!");
         return;
@@ -93,6 +130,7 @@ function Cart() {
 
       toast.error("Invalid coupon code. Check available codes on our Offers page.");
     } catch {
+      setAppliedCoupon(code);
       setCouponApplied(true);
       toast.success("Coupon " + code + " applied!");
     }
@@ -281,22 +319,41 @@ function Cart() {
 
             {/* Coupon Code Input Box */}
             <div className="rounded-2xl border bg-card p-4 shadow-xs">
-              <form onSubmit={applyCoupon} className="flex gap-2">
+              <form
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  void applyCouponCode(couponCode);
+                }}
+                className="flex gap-2"
+              >
                 <input
                   type="text"
                   value={couponCode}
-                  onChange={(e) => setCouponCode(e.target.value)}
-                  placeholder="Enter Coupon Code (e.g. TOYZ10)"
-                  className="w-full rounded-xl border px-3 py-2 text-xs uppercase placeholder:normal-case outline-none focus:border-secondary"
+                  onChange={(e) => setCouponCode(e.target.value.toUpperCase())}
+                  placeholder={`Enter Coupon Code (e.g. ${foCouponCode})`}
+                  className="w-full rounded-xl border px-3 py-2 text-xs uppercase placeholder:normal-case outline-none focus:border-secondary font-mono font-bold"
                 />
                 <Button type="submit" size="sm" variant="outline" className="shrink-0 font-bold">
                   Apply
                 </Button>
               </form>
-              {couponApplied && (
-                <p className="mt-2 text-xs font-semibold text-success flex items-center gap-1">
-                  <Sparkles className="size-3.5" /> Coupon TOYZ10 active!
-                </p>
+              {couponApplied && appliedCoupon && (
+                <div className="mt-2 flex items-center justify-between text-xs font-semibold text-emerald-600 dark:text-emerald-400">
+                  <span className="flex items-center gap-1">
+                    <Sparkles className="size-3.5" /> Coupon <b>{appliedCoupon}</b> active!
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setAppliedCoupon(null);
+                      setCouponApplied(false);
+                      setCouponCode("");
+                    }}
+                    className="text-muted-foreground hover:text-destructive text-[11px] underline"
+                  >
+                    Remove
+                  </button>
+                </div>
               )}
             </div>
           </div>
@@ -311,8 +368,10 @@ function Cart() {
                 <div className="flex items-center gap-2.5">
                   <span className="text-xl">🎁</span>
                   <div>
-                    <p className="text-xs font-bold text-foreground">Get 20% OFF on your first order!</p>
-                    <p className="text-[11px] text-muted-foreground">Login & verify your account to automatically unlock 20% discount.</p>
+                    <p className="text-xs font-bold text-foreground">Get {foPercent}% OFF on your first order!</p>
+                    <p className="text-[11px] text-muted-foreground">
+                      Login & use promo code <b className="font-mono text-primary font-bold">{foCouponCode}</b>.
+                    </p>
                   </div>
                 </div>
                 <Button
@@ -330,8 +389,10 @@ function Cart() {
                 <div className="flex items-center gap-2.5">
                   <span className="text-xl">⚡</span>
                   <div>
-                    <p className="text-xs font-bold text-foreground">Unlock 20% First Order Discount</p>
-                    <p className="text-[11px] text-muted-foreground">Please verify your email/phone to activate 20% off on this order.</p>
+                    <p className="text-xs font-bold text-foreground">Unlock {foPercent}% First Order Discount</p>
+                    <p className="text-[11px] text-muted-foreground">
+                      Verify email/phone to activate coupon <b className="font-mono">{foCouponCode}</b>.
+                    </p>
                   </div>
                 </div>
                 <Button
@@ -345,11 +406,37 @@ function Cart() {
               </div>
             )}
 
-            {user && isFirstOrderEligible && (
+            {user && foEnabled && isFirstOrderEligible && foCouponRequired && !isFoApplied && (
+              <div className="rounded-2xl border border-secondary/40 bg-gradient-to-r from-secondary/15 via-sun-soft to-secondary/10 p-3.5 flex items-center justify-between gap-2.5 shadow-xs">
+                <div className="flex items-center gap-2.5">
+                  <span className="text-xl">💳</span>
+                  <div>
+                    <p className="text-xs font-bold text-foreground">Have a {foCouponCode} Promo Card?</p>
+                    <p className="text-[11px] text-muted-foreground">
+                      Use code <b className="font-mono text-primary font-bold">{foCouponCode}</b> to claim {foPercent}% OFF!
+                    </p>
+                  </div>
+                </div>
+                <Button
+                  size="sm"
+                  className="bg-secondary text-secondary-foreground hover:bg-secondary/90 text-xs font-bold shrink-0 shadow-xs"
+                  onClick={() => {
+                    setCouponCode(foCouponCode);
+                    void applyCouponCode(foCouponCode);
+                  }}
+                >
+                  Apply
+                </Button>
+              </div>
+            )}
+
+            {user && isFirstOrderActive && (
               <div className="rounded-2xl border border-emerald-500/40 bg-emerald-500/10 p-3.5 flex items-center gap-2.5 shadow-xs">
                 <span className="text-xl">🎉</span>
                 <div>
-                  <p className="text-xs font-bold text-emerald-800 dark:text-emerald-300">20% OFF applied on your first order!</p>
+                  <p className="text-xs font-bold text-emerald-800 dark:text-emerald-300">
+                    {foPercent}% OFF applied on your first order!{isFoApplied ? ` (${foCouponCode})` : ""}
+                  </p>
                   <p className="text-[11px] text-emerald-700/90 dark:text-emerald-400 font-medium">
                     You save {inr(firstOrderDiscount)} on product subtotal.
                   </p>

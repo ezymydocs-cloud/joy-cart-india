@@ -84,6 +84,12 @@ function Settings() {
   // Favicon State
   const [faviconUrl, setFaviconUrl] = useState<string>("/favicon.ico");
 
+  // First Order Promo & Card Settings
+  const [foEnabled, setFoEnabled] = useState(true);
+  const [foCouponRequired, setFoCouponRequired] = useState(true);
+  const [foCouponCode, setFoCouponCode] = useState("TRENDY20");
+  const [foDiscountPercent, setFoDiscountPercent] = useState(20);
+
   useEffect(() => {
     if (q.data) {
       const s = q.data as any;
@@ -102,6 +108,11 @@ function Settings() {
       setTextColor(s.announcement_text_color || "#ffffff");
 
       if (s.favicon_url) setFaviconUrl(s.favicon_url);
+
+      setFoEnabled(s.first_order_discount_enabled !== false);
+      setFoCouponRequired(s.first_order_coupon_required !== false);
+      setFoCouponCode(s.first_order_coupon_code ?? "TRENDY20");
+      setFoDiscountPercent(Number(s.first_order_discount_percent) || 20);
 
       const msgs = Array.isArray(s.announcement_center_messages)
         ? s.announcement_center_messages
@@ -259,6 +270,12 @@ function Settings() {
         announcement_messages: centerMessages.filter((m) => m.text.trim()),
 
         favicon_url: faviconUrl,
+
+        // First Order Promo & Card Settings
+        first_order_discount_enabled: foEnabled,
+        first_order_coupon_required: foCouponRequired,
+        first_order_coupon_code: foCouponCode.trim().toUpperCase() || "TRENDY20",
+        first_order_discount_percent: Number(foDiscountPercent) || 20,
       } as any)
       .eq("id", 1);
 
@@ -614,6 +631,78 @@ function Settings() {
                   Reset to Default
                 </Button>
               )}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* SECTION 2.5: FIRST ORDER 20% DISCOUNT & PROMO CARD SETTINGS */}
+      <div className="rounded-2xl border bg-card p-5 shadow-xs space-y-4">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <Gift className="size-5 text-secondary" />
+            <h2 className="text-base font-bold text-foreground">First Order 20% Discount & Promo Card Settings</h2>
+          </div>
+          <label className="flex items-center gap-2 text-xs font-bold cursor-pointer">
+            <Switch checked={foEnabled} onCheckedChange={setFoEnabled} />
+            <span>{foEnabled ? "Offer Active" : "Offer Paused"}</span>
+          </label>
+        </div>
+
+        <p className="text-xs text-muted-foreground">
+          Manage the 20% first-order discount system and configure coupon code requirements for printed promo cards.
+        </p>
+
+        {/* Promo Card Callout */}
+        <div className="rounded-xl border border-secondary/30 bg-secondary/10 p-3.5 text-xs text-foreground flex items-start gap-2.5">
+          <Sparkles className="size-4 text-secondary shrink-0 mt-0.5" />
+          <div>
+            <p className="font-bold">Printed Advertisement Cards ({foCouponCode})</p>
+            <p className="text-[11px] text-muted-foreground mt-0.5">
+              Keep <b>Require Coupon Code ON</b> so customers who received your printed card must type in <b>{foCouponCode}</b> at cart/checkout to activate their 20% discount. You can turn this OFF anytime to auto-apply without a code.
+            </p>
+          </div>
+        </div>
+
+        <div className="space-y-4 pt-2">
+          {/* Coupon Code Requirement Toggle */}
+          <div className="flex items-center justify-between rounded-xl border p-3.5 bg-background/50">
+            <div className="space-y-0.5 pr-4">
+              <Label className="text-sm font-bold text-foreground cursor-pointer">
+                Require Coupon Code to Apply Offer
+              </Label>
+              <p className="text-xs text-muted-foreground">
+                {foCouponRequired
+                  ? `Active (Mandatory): Customers must enter coupon code "${foCouponCode}" at checkout to get the discount.`
+                  : "Inactive (Auto-Apply): 20% discount is automatically applied to all verified first-time buyers."}
+              </p>
+            </div>
+            <Switch checked={foCouponRequired} onCheckedChange={setFoCouponRequired} />
+          </div>
+
+          <div className="grid gap-3 sm:grid-cols-2">
+            <div>
+              <Label>First Order Coupon Code</Label>
+              <Input
+                value={foCouponCode}
+                onChange={(e) => setFoCouponCode(e.target.value.toUpperCase())}
+                placeholder="TRENDY20"
+                className="mt-1 font-mono uppercase font-bold"
+              />
+              <p className="text-[11px] text-muted-foreground mt-1">Code printed on advertisement cards (e.g. TRENDY20).</p>
+            </div>
+
+            <div>
+              <Label>Discount Percentage (%)</Label>
+              <Input
+                type="number"
+                min={1}
+                max={100}
+                value={foDiscountPercent}
+                onChange={(e) => setFoDiscountPercent(Number(e.target.value))}
+                className="mt-1 font-bold"
+              />
+              <p className="text-[11px] text-muted-foreground mt-1">Default is 20% off product subtotal.</p>
             </div>
           </div>
         </div>

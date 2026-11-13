@@ -663,6 +663,10 @@ couriers: {
           flash_deals_custom_discounts?: Json | null
           announcement_bar_enabled?: boolean | null
           announcement_messages?: Json | null
+          first_order_discount_enabled?: boolean | null
+          first_order_coupon_required?: boolean | null
+          first_order_coupon_code?: string | null
+          first_order_discount_percent?: number | null
         }
         Insert: {
           admin_notification_email?: string
@@ -684,6 +688,10 @@ couriers: {
           flash_deals_custom_discounts?: Json | null
           announcement_bar_enabled?: boolean | null
           announcement_messages?: Json | null
+          first_order_discount_enabled?: boolean | null
+          first_order_coupon_required?: boolean | null
+          first_order_coupon_code?: string | null
+          first_order_discount_percent?: number | null
         }
         Update: {
           admin_notification_email?: string
@@ -705,6 +713,10 @@ couriers: {
           flash_deals_custom_discounts?: Json | null
           announcement_bar_enabled?: boolean | null
           announcement_messages?: Json | null
+          first_order_discount_enabled?: boolean | null
+          first_order_coupon_required?: boolean | null
+          first_order_coupon_code?: string | null
+          first_order_discount_percent?: number | null
         }
         Relationships: []
       }

@@ -73,11 +73,22 @@ function Checkout() {
     if (coupon && cartKey) void applyCoupon(coupon.code, true);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [cartKey]);
-  const discount = coupon?.discount ?? 0;
+
+  const settings = useQuery({ queryKey: ["settings"], queryFn: fetchSettings });
+  const foCouponCode = (((settings.data as any)?.first_order_coupon_code || "TRENDY20") as string).toUpperCase();
+  const foCouponRequired = (settings.data as any)?.first_order_coupon_required !== false;
+  const foEnabled = (settings.data as any)?.first_order_discount_enabled !== false;
+  const foPercent = Number((settings.data as any)?.first_order_discount_percent) || 20;
+
   const firstOrder = useFirstOrderEligibility();
   const isFirstOrderEligible = firstOrder.data?.eligible === true;
-  const firstOrderDiscount = isFirstOrderEligible ? Math.round(c.subtotal * 0.20) : 0;
-  const grand = Math.max(0, c.total - discount - firstOrderDiscount);
+  const isFoCouponApplied = coupon?.code?.toUpperCase() === foCouponCode;
+
+  // Active when offer enabled + eligible, and (coupon not required OR user entered coupon)
+  const isFirstOrderActive = foEnabled && isFirstOrderEligible && (!foCouponRequired || isFoCouponApplied);
+  const firstOrderDiscount = isFirstOrderActive ? Math.round(c.subtotal * (foPercent / 100)) : 0;
+  const generalDiscount = isFoCouponApplied ? 0 : (coupon?.discount ?? 0);
+  const grand = Math.max(0, c.total - generalDiscount - firstOrderDiscount);
 
   const addrs = useQuery({
     queryKey: ["addresses", user?.id],
@@ -93,7 +104,6 @@ function Checkout() {
       return data as AddressRow[];
     },
   });
-  const settings = useQuery({ queryKey: ["settings"], queryFn: fetchSettings });
   const payCfg = useQuery({ queryKey: ["pay-config"], queryFn: () => payCfgFn() });
   const razorpayOn = !!settings.data?.razorpay_enabled && !!payCfg.data?.razorpayConfigured;
 
@@ -138,7 +148,7 @@ function Checkout() {
           paymentMethod: method,
           idempotencyKey: idem.current,
           couponCode: coupon?.code,
-          applyFirstOrder: isFirstOrderEligible,
+          applyFirstOrder: isFirstOrderActive,
         },
       });
 
@@ -456,26 +466,52 @@ function Checkout() {
               </div>
             )}
           </div>
-          {/* First Order Discount Banner */}
-          {isFirstOrderEligible && (
+          {/* First Order Discount Banners */}
+          {isFirstOrderActive && (
             <div className="rounded-2xl border border-emerald-500/40 bg-emerald-500/10 p-3 flex items-center gap-2.5">
               <span className="text-xl">🎉</span>
               <div>
                 <p className="text-xs font-bold text-emerald-800 dark:text-emerald-300">
-                  First Order 20% Discount Applied!
+                  First Order {foPercent}% Discount Applied{isFoCouponApplied ? ` (${foCouponCode})` : ""}!
                 </p>
                 <p className="text-[11px] text-emerald-700/90 dark:text-emerald-400">
-                  Saving {inr(firstOrderDiscount)} on your order.
+                  Saving {inr(firstOrderDiscount)} on your first order.
                 </p>
               </div>
+            </div>
+          )}
+
+          {foEnabled && isFirstOrderEligible && foCouponRequired && !isFoCouponApplied && (
+            <div className="rounded-2xl border border-secondary/40 bg-gradient-to-r from-secondary/15 via-sun-soft to-secondary/10 p-3 flex items-center justify-between gap-2.5 shadow-xs">
+              <div className="flex items-center gap-2.5">
+                <span className="text-xl">💳</span>
+                <div>
+                  <p className="text-xs font-bold text-foreground">Have a {foCouponCode} Promo Card?</p>
+                  <p className="text-[11px] text-muted-foreground">
+                    Apply promo code <b className="font-mono text-primary font-bold">{foCouponCode}</b> above to get {foPercent}% OFF!
+                  </p>
+                </div>
+              </div>
+              <Button
+                size="sm"
+                variant="outline"
+                className="border-secondary text-secondary-foreground bg-secondary hover:bg-secondary/90 text-xs font-bold shrink-0 shadow-xs"
+                disabled={checking}
+                onClick={() => {
+                  setCodeInput(foCouponCode);
+                  void applyCoupon(foCouponCode);
+                }}
+              >
+                Apply {foCouponCode}
+              </Button>
             </div>
           )}
 
           {firstOrder.data?.reason === "not_verified" && (
             <div className="rounded-2xl border border-amber-500/40 bg-amber-500/10 p-3 flex items-center justify-between gap-2.5">
               <div>
-                <p className="text-xs font-bold text-foreground">Verify to unlock 20% OFF</p>
-                <p className="text-[11px] text-muted-foreground">Confirm email/phone to apply 20% first-order discount.</p>
+                <p className="text-xs font-bold text-foreground">Verify to unlock {foCouponCode} ({foPercent}% OFF)</p>
+                <p className="text-[11px] text-muted-foreground">Confirm email/phone to activate {foPercent}% first-order discount.</p>
               </div>
               <Button size="sm" variant="outline" className="border-amber-500 text-xs shrink-0" onClick={() => nav({ to: "/account" })}>
                 Verify
@@ -487,8 +523,8 @@ function Checkout() {
             subtotal={c.subtotal}
             shipping={c.shipping}
             total={grand}
-            discount={discount}
-            coupon={coupon?.code}
+            discount={generalDiscount}
+            coupon={isFoCouponApplied ? null : coupon?.code}
             firstOrderDiscount={firstOrderDiscount}
           />
           <CancelRuleNote />
